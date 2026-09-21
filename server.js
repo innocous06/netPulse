@@ -136,7 +136,7 @@ wss.on('connection', (ws, req) => {
         }
       }
       else if (data.type === 'ping-test') {
-        const count = data.count || 20;
+        const count = Math.min(50, Math.max(1, parseInt(data.count, 10) || 20));
         for (let i = 0; i < count; i++) {
           if (ws.readyState !== 1) break;
           await new Promise(r => setTimeout(r, 50)); 
