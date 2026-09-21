@@ -55,7 +55,13 @@ router.post('/upload', (req, res) => {
   });
 
   req.on('data', chunk => {
-    if (!isAborted) bytes += chunk.length;
+    if (!isAborted) {
+      bytes += chunk.length;
+      if (bytes > 100 * 1024 * 1024) { // 100MB flood guard
+        isAborted = true;
+        req.destroy();
+      }
+    }
   });
 
   req.on('end', () => {

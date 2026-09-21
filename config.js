@@ -1,8 +1,8 @@
 module.exports = {
   PIN: process.env.NETPULSE_PIN || '060606',
-  PORT: process.env.PORT || 3001,
+  PORT: process.env.PORT || (process.platform === 'linux' ? 3000 : 3001),
   SESSION_SECRET: process.env.SESSION_SECRET || require('crypto').randomBytes(32).toString('hex'),
-  RATE_LIMIT: { maxAttempts: 1000, windowMs: 60000 },
+  RATE_LIMIT: { maxAttempts: 5, windowMs: 900000 },
   GAME_SERVERS: [
     { name: 'Valorant Mumbai', host: '20.207.0.1', port: 443, region: 'Mumbai', type: 'local', game: 'Valorant' },
     { name: 'Valorant Singapore', host: '13.215.0.1', port: 443, region: 'Singapore', type: 'abroad', game: 'Valorant' },

@@ -5,7 +5,11 @@ const router = express.Router();
 const loginAttempts = new Map();
 
 const getClientIp = (req) => {
-  return req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket.remoteAddress;
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.headers['x-real-ip'] || req.socket.remoteAddress || 'unknown';
 };
 
 // Cleanup routine
