@@ -1,0 +1,20 @@
+[Unit]
+Description=NetPulse Network Diagnostics Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/netpulse
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=NETPULSE_PIN=060606
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=netpulse
+
+[Install]
+WantedBy=multi-user.target
