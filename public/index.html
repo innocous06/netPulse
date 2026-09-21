@@ -1,52 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NetPulse | Network Diagnostics</title>
+    <title>NetPulse // Telemetry & Speed Test</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --bg-deep: #000000;
-            --bg-base: #000000;
-            --bg-surface: #0a0a0a;
-            --bg-elevated: #111111;
-            --bg-glass: rgba(255, 255, 255, 0.02);
-            --bg-glass-hover: rgba(255, 255, 255, 0.045);
-            --border-subtle: rgba(255, 255, 255, 0.045);
-            --border-medium: rgba(255, 255, 255, 0.08);
-            --border-accent: rgba(192, 94, 60, 0.25);
-            --text-primary: #f2f2f5;
-            --text-secondary: #b0b0bc;
-            --text-muted: #717180;
-            
-            --accent: #c9654a;
-            --accent-light: #da8268;
-            --accent-lighter: #e8a999;
-            --accent-dim: rgba(201, 101, 74, 0.12);
-            
-            --success: #4ade80;
-            --warning: #facc15;
-            --error: #ef4444;
-            --info: #3b82f6;
-            
-            --font-display: 'Space Grotesk', sans-serif;
-            --font-body: 'Inter', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
-            --radius-sm: 6px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-            --radius-xl: 24px;
+    <style>
+        /* === Color Palette & Editorial Utility Tokens === */
+        :root {
+            --font-display: 'Space Grotesk', -apple-system, sans-serif;
+            --font-body: 'Inter', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --transition-speed: 0.2s;
+        }
+
+        /* Dark Mode (Default): Pure Black, Sky Blue Accents Max 10% */
+        html[data-theme="dark"] {
+            --bg-base: #000000;
+            --bg-surface: #0a0a0c;
+            --bg-card: #111114;
+            --bg-elevated: #18181c;
+            --border-subtle: #222226;
+            --border-strong: #33333a;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
             
-            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+            /* Sky / Light Blue Accent (Max 10% Screen Weight) - No dark blue or purple */
+            --sky-accent: #38bdf8;
+            --sky-light: #7dd3fc;
+            --sky-dim: rgba(56, 189, 248, 0.12);
+            --sky-border: rgba(56, 189, 248, 0.3);
+            
+            --stat-green: #34d399;
+            --stat-yellow: #fbbf24;
+            --stat-red: #f87171;
+        }
+
+        /* Light Mode: Pure White, Sky Blue Accents Max 10% */
+        html[data-theme="light"] {
+            --bg-base: #ffffff;
+            --bg-surface: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-elevated: #f1f5f9;
+            --border-subtle: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --text-primary: #09090b;
+            --text-secondary: #52525b;
+            --text-muted: #a1a1aa;
+            
+            --sky-accent: #0284c7;
+            --sky-light: #38bdf8;
+            --sky-dim: rgba(2, 132, 199, 0.08);
+            --sky-border: rgba(2, 132, 199, 0.25);
+            
+            --stat-green: #059669;
+            --stat-yellow: #d97706;
+            --stat-red: #dc2626;
         }
 
         * {
@@ -55,1698 +70,1427 @@
             padding: 0;
         }
 
-        html, body {
-            height: 100%;
-            width: 100%;
-            background-color: var(--bg-deep);
+        body {
+            background-color: var(--bg-base);
             color: var(--text-primary);
             font-family: var(--font-body);
+            min-height: 100vh;
+            line-height: 1.5;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
-            scrollbar-color: var(--border-medium) var(--bg-base);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--bg-base);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-medium);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--text-muted);
-        }
-
-        /* Noise Overlay */
-        .noise-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0.03;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-        }
-
-        /* Ambient Glow */
-        .ambient-glow {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80vw;
-            height: 80vh;
-            background: radial-gradient(circle, var(--accent-dim) 0%, transparent 60%);
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.5;
-            filter: blur(80px);
-        }
-
-        /* Typography */
-        h1, h2, h3, h4, h5, h6 {
-            font-family: var(--font-display);
-            font-weight: 600;
-            letter-spacing: -0.02em;
-        }
-
-        .text-accent { color: var(--accent); }
-        .text-secondary { color: var(--text-secondary); }
-        .text-muted { color: var(--text-muted); }
-        
-        .font-mono { font-family: var(--font-mono); }
-        
-        /* Screens */
+        /* === Screens & Layout === */
         .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
+            display: none;
             width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity var(--transition-slow), transform var(--transition-slow);
-            transform: scale(0.98);
-            z-index: 1;
+            min-height: 100vh;
         }
 
         .screen.active {
-            opacity: 1;
-            visibility: visible;
-            transform: scale(1);
-            position: relative;
-            min-height: 100vh;
-            height: auto;
-        }
-
-        /* === Screen 1: Auth === */
-        #auth-screen {
-            justify-content: center;
-            align-items: center;
-        }
-
-        .auth-card {
-            background: var(--bg-glass);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-xl);
-            padding: 3rem;
-            width: 100%;
-            max-width: 420px;
-            text-align: center;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .auth-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--border-accent), transparent);
-            opacity: 0.5;
-        }
-
-        .auth-logo {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
-        
-        .auth-logo span {
-            color: var(--accent);
-        }
-
-        .auth-subtitle {
-            color: var(--text-muted);
-            margin-bottom: 2.5rem;
-            font-size: 1rem;
-        }
-
-        .pin-container {
             display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .pin-input {
-            width: 45px;
-            height: 55px;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-family: var(--font-mono);
-            font-size: 1.5rem;
-            text-align: center;
-            transition: all var(--transition-fast);
-            outline: none;
-        }
-
-        .pin-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px var(--accent-dim);
-            transform: translateY(-2px);
-        }
-
-        .pin-error {
-            color: var(--error);
-            font-size: 0.875rem;
-            min-height: 20px;
-            opacity: 0;
-            transition: opacity var(--transition-fast);
-        }
-        
-        .pin-error.visible {
-            opacity: 1;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-
-        .shake {
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-        }
-
-        /* === Screen 2: Dashboard === */
-        #dashboard-screen {
-            padding-top: 70px;
-        }
-
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 70px;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-subtle);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-            z-index: 100;
-        }
-
-        .header-logo {
-            font-family: var(--font-display);
-            font-size: 1.5rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .header-logo .dot {
-            width: 8px;
-            height: 8px;
-            background-color: var(--accent);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--accent);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 var(--accent-dim); }
-            70% { transform: scale(1.2); opacity: 0.8; box-shadow: 0 0 0 10px transparent; }
-            100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 transparent; }
-        }
-
-        .header-time {
-            font-family: var(--font-mono);
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .btn {
-            background: transparent;
-            border: 1px solid var(--border-medium);
-            color: var(--text-primary);
-            padding: 8px 16px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-family: var(--font-body);
-            font-weight: 500;
-            font-size: 0.875rem;
-            transition: all var(--transition-fast);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn:hover {
-            background: var(--bg-glass-hover);
-            border-color: var(--text-muted);
-        }
-        
-        .btn-accent {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: #fff;
-        }
-        
-        .btn-accent:hover {
-            background: var(--accent-light);
-            border-color: var(--accent-light);
+            flex-direction: column;
         }
 
         .container {
-            max-width: 1280px;
+            width: 100%;
+            max-width: 1240px;
             margin: 0 auto;
-            padding: 2rem;
-            display: grid;
-            gap: 2rem;
-            grid-template-columns: 1fr;
+            padding: 0 1.5rem;
         }
 
-        @media (min-width: 1024px) {
-            .container {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .full-width {
-                grid-column: 1 / -1;
-            }
+        /* === Header Bar === */
+        .top-nav {
+            border-bottom: 1px solid var(--border-subtle);
+            background-color: var(--bg-surface);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        /* Glass Cards */
-        .card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .card:hover {
-            border-color: var(--border-medium);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-        }
-        
-        .card-header {
+        .nav-inner {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .brand-block {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .brand-logo .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--sky-accent);
+            display: inline-block;
+            box-shadow: 0 0 10px var(--sky-accent);
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.75); opacity: 0.5; }
+        }
+
+        .brand-tag {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: var(--sky-dim);
+            color: var(--sky-accent);
+            border: 1px solid var(--sky-border);
+            font-weight: 600;
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-clock {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding: 0 8px;
+        }
+
+        .btn-toggle-theme, .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-toggle-theme:hover, .btn-ghost:hover {
+            border-color: var(--sky-accent);
+            background: var(--sky-dim);
+            color: var(--sky-accent);
+        }
+
+        /* === Authentication Screen === */
+        #auth-screen {
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .auth-box {
+            width: 100%;
+            max-width: 420px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 2.5rem;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .auth-title {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .auth-desc {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-family: var(--font-mono);
+        }
+
+        .pin-wrapper {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
             margin-bottom: 1.5rem;
         }
-        
-        .card-title {
-            font-size: 1.1rem;
+
+        .pin-box {
+            width: 46px;
+            height: 54px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-strong);
+            border-radius: 6px;
             color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
 
-        /* Speed Test Panel */
-        .speed-panel {
+        .pin-box:focus {
+            border-color: var(--sky-accent);
+            box-shadow: 0 0 0 2px var(--sky-dim);
+        }
+
+        .auth-error-msg {
+            color: var(--stat-red);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            min-height: 22px;
+            margin-bottom: 1.25rem;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: var(--sky-accent);
+            color: #000000;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: opacity var(--transition-speed);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* === Dashboard Layout (Editorial Utility) === */
+        .dash-content {
+            padding: 2rem 0 4rem;
+        }
+
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.25rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 1.5rem;
+        }
+
+        .col-12 { grid-column: span 12; }
+        .col-8  { grid-column: span 8; }
+        .col-6  { grid-column: span 6; }
+        .col-4  { grid-column: span 4; }
+        .col-3  { grid-column: span 3; }
+
+        @media (max-width: 900px) {
+            .col-8, .col-6, .col-4, .col-3 { grid-column: span 12; }
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .card-tag {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--sky-accent);
+            font-weight: 600;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        /* Speed Hero Section */
+        .hero-speed-box {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 3rem 1.5rem;
+            justify-content: center;
+            padding: 2.5rem 1rem;
+            text-align: center;
         }
 
-        .gauge-container {
-            position: relative;
-            width: 300px;
-            height: 180px;
+        .speed-readout {
+            font-family: var(--font-mono);
+            font-size: clamp(3rem, 7vw, 5.5rem);
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -2px;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .speed-unit {
+            font-size: 1.2rem;
+            color: var(--sky-accent);
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .speed-status-badge {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
             margin-bottom: 2rem;
         }
 
-        .gauge-svg {
-            width: 100%;
-            height: 100%;
-            overflow: visible;
-        }
-
-        .gauge-bg {
-            fill: none;
-            stroke: var(--border-medium);
-            stroke-width: 15;
-            stroke-linecap: round;
-        }
-
-        .gauge-fill {
-            fill: none;
-            stroke: url(#gauge-gradient);
-            stroke-width: 15;
-            stroke-linecap: round;
-            stroke-dasharray: 471; /* pi * r */
-            stroke-dashoffset: 471;
-            transition: stroke-dashoffset 200ms ease-out;
-        }
-        
-        .gauge-text-container {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            transform: translateY(20px);
-        }
-        
-        .gauge-value {
-            font-family: var(--font-display);
-            font-size: 4rem;
-            font-weight: 700;
-            line-height: 1;
-            background: linear-gradient(to right, var(--text-primary), var(--text-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-variant-numeric: tabular-nums;
-        }
-        
-        .gauge-unit {
-            color: var(--text-muted);
-            font-size: 1rem;
-            font-weight: 500;
-        }
-        
-        .speed-results {
-            display: flex;
-            gap: 2rem;
+        /* Metric Bar Progress */
+        .speed-bar-track {
             width: 100%;
             max-width: 500px;
-            margin-top: 2rem;
-        }
-        
-        .speed-result-card {
-            flex: 1;
+            height: 6px;
             background: var(--bg-elevated);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            text-align: center;
-        }
-        
-        .speed-result-label {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        
-        .speed-result-value {
-            font-family: var(--font-mono);
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        
-        .speed-controls {
-            margin-top: 2rem;
-            display: flex;
-            gap: 1rem;
-        }
-
-        /* Latency Panel */
-        .latency-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .latency-stat {
-            background: var(--bg-elevated);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid transparent;
-        }
-        
-        .latency-label {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .latency-value {
-            font-family: var(--font-mono);
-            font-size: 1.75rem;
-            font-weight: 500;
-            display: flex;
-            align-items: baseline;
-            gap: 4px;
-        }
-        
-        .latency-unit {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-        
-        .ping-chart-container {
-            width: 100%;
-            height: 120px;
-            background: var(--bg-elevated);
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-subtle);
-            position: relative;
+            border-radius: 3px;
             overflow: hidden;
-            padding: 10px;
-        }
-        
-        #pingChart {
-            width: 100%;
-            height: 100%;
-            display: block;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-subtle);
         }
 
-        /* Info List (Identity & Advanced) */
-        .info-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            background: var(--bg-elevated);
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-subtle);
-        }
-        
-        .info-item-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .info-item-value {
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .badge {
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-medium);
-        }
-        
-        .badge.success { color: var(--success); border-color: rgba(74, 222, 128, 0.2); background: rgba(74, 222, 128, 0.1); }
-        .badge.warning { color: var(--warning); border-color: rgba(250, 204, 21, 0.2); background: rgba(250, 204, 21, 0.1); }
-        .badge.error { color: var(--error); border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.1); }
-        .badge.info { color: var(--info); border-color: rgba(59, 130, 246, 0.2); background: rgba(59, 130, 246, 0.1); }
-
-        /* Game Servers Panel */
-        .gameserver-filters {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            overflow-x: auto;
-            padding-bottom: 4px;
-            scrollbar-width: none;
-        }
-        
-        .gameserver-filters::-webkit-scrollbar { display: none; }
-        
-        .filter-tab {
-            padding: 6px 16px;
-            border-radius: 20px;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-subtle);
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 0.875rem;
-            white-space: nowrap;
-            transition: all var(--transition-fast);
-        }
-        
-        .filter-tab:hover {
-            color: var(--text-primary);
-            border-color: var(--border-medium);
-        }
-        
-        .filter-tab.active {
-            background: var(--accent-dim);
-            color: var(--accent-light);
-            border-color: var(--border-accent);
-        }
-        
-        .gameserver-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1rem;
-        }
-        
-        .gs-card {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-md);
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            transition: all var(--transition-fast);
-        }
-        
-        .gs-card:hover {
-            border-color: var(--border-medium);
-            background: var(--bg-glass-hover);
-        }
-        
-        .gs-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        
-        .gs-title-wrap {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .gs-icon {
-            font-size: 1.5rem;
-        }
-        
-        .gs-name {
-            font-weight: 600;
-            font-size: 1rem;
-            color: var(--text-primary);
-            margin-bottom: 2px;
-        }
-        
-        .gs-region {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-        
-        .gs-metrics {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-        }
-        
-        .gs-ping {
-            font-family: var(--font-mono);
-            font-size: 1.8rem;
-            font-weight: 500;
-            line-height: 1;
-            transition: color var(--transition-fast);
-        }
-        
-        .gs-ping-unit {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            margin-left: 2px;
-        }
-        
-        .gs-bar-bg {
-            width: 100%;
-            height: 4px;
-            background: var(--border-medium);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 0.5rem;
-        }
-        
-        .gs-bar-fill {
+        .speed-bar-fill {
             height: 100%;
             width: 0%;
-            border-radius: 2px;
-            transition: width 0.3s ease, background-color 0.3s ease;
-        }
-        
-        .gs-pulse {
-            animation: gs-pulse 0.5s ease-out;
-        }
-        
-        @keyframes gs-pulse {
-            0% { background: var(--accent-dim); }
-            100% { background: transparent; }
+            background: var(--sky-accent);
+            transition: width 0.15s ease-out;
         }
 
-        /* Terminal Output */
-        .terminal {
-            background: #050505;
-            border: 1px solid var(--border-medium);
-            border-radius: var(--radius-md);
-            padding: 1rem;
+        .dual-metric-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 500px;
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 1.5rem;
+        }
+
+        .dual-metric-item {
+            text-align: left;
+        }
+
+        .dual-metric-label {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .dual-metric-value {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* High-Density Telemetry Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
             font-family: var(--font-mono);
             font-size: 0.85rem;
+        }
+
+        .data-table tr {
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .data-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .data-table td {
+            padding: 10px 0;
+        }
+
+        .data-table td:first-child {
             color: var(--text-secondary);
-            height: 200px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            line-height: 1.5;
+            width: 40%;
         }
-        
-        .terminal-cursor {
+
+        .data-table td:last-child {
+            color: var(--text-primary);
+            text-align: right;
+            font-weight: 600;
+        }
+
+        /* Status Pills */
+        .status-pill {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 600;
             display: inline-block;
-            width: 8px;
-            height: 1em;
-            background: var(--text-secondary);
-            animation: blink 1s step-end infinite;
-            vertical-align: middle;
-        }
-        
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
         }
 
-        /* Utilities */
-        .text-green { color: var(--success); }
-        .text-yellow { color: var(--warning); }
-        .text-orange { color: #fb923c; }
-        .text-red { color: var(--error); }
-        
-        .bg-green { background-color: var(--success); }
-        .bg-yellow { background-color: var(--warning); }
-        .bg-orange { background-color: #fb923c; }
-        .bg-red { background-color: var(--error); }
+        .pill-good {
+            background: rgba(52, 211, 153, 0.1);
+            color: var(--stat-green);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+        }
 
-        .flex-center { display: flex; align-items: center; justify-content: center; }
-        
-        .skeleton {
-            background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--border-medium) 50%, var(--bg-elevated) 75%);
-            background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
+        .pill-warn {
+            background: rgba(251, 191, 36, 0.1);
+            color: var(--stat-yellow);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .pill-bad {
+            background: rgba(248, 113, 113, 0.1);
+            color: var(--stat-red);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+        }
+
+        /* Terminal Console */
+        .terminal-box {
+            background: #000000;
+            color: #d4d4d8;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
             border-radius: 4px;
-            color: transparent !important;
-        }
-        
-        .skeleton * {
-            visibility: hidden;
-        }
-
-        @keyframes skeleton-loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+            padding: 1rem;
+            height: 180px;
+            overflow-y: auto;
+            border: 1px solid var(--border-subtle);
+            line-height: 1.6;
         }
 
-        /* SVG Icons */
-        .icon {
-            width: 1.2em;
-            height: 1.2em;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+        .terminal-line {
+            display: flex;
+            gap: 8px;
         }
 
-        @media (max-width: 768px) {
-            .container { padding: 1rem; }
-            .latency-grid { grid-template-columns: 1fr; }
-            .header { padding: 0 1rem; }
-            .auth-card { padding: 2rem 1.5rem; }
-            .pin-input { width: 40px; height: 50px; font-size: 1.25rem; }
-            .gameserver-grid { grid-template-columns: 1fr; }
+        .terminal-prompt {
+            color: var(--sky-accent);
+            user-select: none;
+        }
+
+        /* Game Server Grid */
+        .game-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .game-tab-btn {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .game-tab-btn.active, .game-tab-btn:hover {
+            background: var(--sky-dim);
+            color: var(--sky-accent);
+            border-color: var(--sky-border);
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px;
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .game-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            padding: 10px 12px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+        }
+
+        .game-card .name {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .game-card .meta {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+        }
+
+        .game-card .ping-val {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* Threading mode selector & Stop button */
+        .thread-mode-selector {
+            display: inline-flex;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            padding: 2px;
+            gap: 2px;
+        }
+
+        .thread-mode-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .thread-mode-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .thread-mode-btn.active {
+            background: var(--sky-dim);
+            color: var(--sky-accent);
+            border: 1px solid var(--sky-border);
+            font-weight: 600;
+        }
+
+        .btn-stop {
+            background: rgba(239, 68, 68, 0.12) !important;
+            border: 1px solid #ef4444 !important;
+            color: #ef4444 !important;
+        }
+
+        .btn-stop:hover {
+            background: rgba(239, 68, 68, 0.22) !important;
         }
     </style>
 </head>
 <body>
-    <div class="noise-overlay"></div>
-    <div class="ambient-glow"></div>
 
-    <!-- Screen 1: Auth -->
-    <div id="auth-screen" class="screen active">
-        <div class="auth-card">
-            <h1 class="auth-logo">Net<span>Pulse</span></h1>
-            <p class="auth-subtitle">Network Diagnostics</p>
-            
-            <div class="pin-container" id="pin-container">
-                <input type="password" class="pin-input" maxlength="1" inputmode="numeric" pattern="[0-9]*" autofocus>
-                <input type="password" class="pin-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                <input type="password" class="pin-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                <input type="password" class="pin-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                <input type="password" class="pin-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
-                <input type="password" class="pin-input" maxlength="1" inputmode="numeric" pattern="[0-9]*">
+    <!-- TOP NAVIGATION -->
+    <header class="top-nav">
+        <div class="container nav-inner">
+            <div class="brand-block">
+                <div class="brand-logo">
+                    <span class="dot"></span>
+                    <span>NETPULSE</span>
+                </div>
+                <span class="brand-tag">Telemetry 2.0</span>
             </div>
-            
-            <div id="pin-error" class="pin-error">Incorrect PIN. Please try again.</div>
+            <div class="nav-controls">
+                <span id="nav-clock" class="nav-clock">--:--:--</span>
+                <button id="btn-theme" class="btn-toggle-theme" title="Toggle Light / Dark Mode">
+                    <span id="theme-icon">☼</span>
+                    <span id="theme-text">LIGHT</span>
+                </button>
+                <button id="btn-logout" class="btn-ghost" style="display:none;">LOCK</button>
+            </div>
         </div>
-    </div>
+    </header>
 
-    <!-- Screen 2: Dashboard -->
-    <div id="dashboard-screen" class="screen">
-        <header class="header">
-            <div class="header-logo">
-                Net<span class="text-accent">Pulse</span>
-                <div class="dot"></div>
-            </div>
-            <div class="header-time" id="clock">00:00:00</div>
-            <button class="btn" id="btn-logout">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                Logout
-            </button>
-        </header>
+    <!-- SCREEN 1: PIN AUTHENTICATION -->
+    <section id="auth-screen" class="screen active">
+        <div class="auth-box">
+            <h1 class="auth-title">Security Gate</h1>
+            <p class="auth-desc">// ENTER 6-DIGIT DIAGNOSTIC PIN</p>
+            <form id="pin-form" onsubmit="return false;">
+                <div class="pin-wrapper">
+                    <input type="password" maxlength="1" class="pin-box" inputmode="numeric" autofocus>
+                    <input type="password" maxlength="1" class="pin-box" inputmode="numeric">
+                    <input type="password" maxlength="1" class="pin-box" inputmode="numeric">
+                    <input type="password" maxlength="1" class="pin-box" inputmode="numeric">
+                    <input type="password" maxlength="1" class="pin-box" inputmode="numeric">
+                    <input type="password" maxlength="1" class="pin-box" inputmode="numeric">
+                </div>
+                <div id="auth-error" class="auth-error-msg"></div>
+                <button type="submit" id="btn-submit-pin" class="btn-primary">Unlock Telemetry</button>
+            </form>
+        </div>
+    </section>
 
-        <main class="container">
-            <!-- A. Speed Test Panel -->
-            <div class="card full-width speed-panel">
-                <div class="gauge-container">
-                    <svg class="gauge-svg" viewBox="0 0 200 120">
-                        <defs>
-                            <linearGradient id="gauge-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stop-color="var(--accent)" />
-                                <stop offset="100%" stop-color="var(--accent-lighter)" />
-                            </linearGradient>
-                        </defs>
-                        <!-- Background Arc -->
-                        <path class="gauge-bg" d="M 20 100 A 80 80 0 0 1 180 100" />
-                        <!-- Foreground Arc -->
-                        <path class="gauge-fill" id="gauge-fill" d="M 20 100 A 80 80 0 0 1 180 100" />
-                    </svg>
-                    <div class="gauge-text-container">
-                        <div class="gauge-value" id="speed-value">0.0</div>
-                        <div class="gauge-unit">Mbps</div>
-                    </div>
-                </div>
-                
-                <div class="speed-controls">
-                    <button class="btn btn-accent" id="btn-speedtest">
-                        <svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                        Run Full Test
-                    </button>
-                </div>
-                
-                <div class="speed-results">
-                    <div class="speed-result-card">
-                        <div class="speed-result-label">
-                            <svg class="icon" viewBox="0 0 24 24" style="width: 1em; height: 1em; stroke: var(--info)"><polyline points="7 13 12 18 17 13"></polyline><line x1="12" y1="18" x2="12" y2="6"></line></svg>
-                            Download
+    <!-- SCREEN 2: DIAGNOSTIC DASHBOARD -->
+    <section id="dash-screen" class="screen">
+        <div class="container dash-content">
+            <div class="telemetry-grid">
+
+                <!-- 1. Primary Speed Telemetry -->
+                <div class="card col-12">
+                    <div class="card-header" style="flex-wrap:wrap; gap:12px;">
+                        <div>
+                            <span class="card-tag">// PRIMARY BENCHMARK</span>
+                            <h2 class="card-title">Network Throughput Engine</h2>
                         </div>
-                        <div class="speed-result-value" id="dl-result">--</div>
-                    </div>
-                    <div class="speed-result-card">
-                        <div class="speed-result-label">
-                            <svg class="icon" viewBox="0 0 24 24" style="width: 1em; height: 1em; stroke: var(--accent)"><polyline points="17 11 12 6 7 11"></polyline><line x1="12" y1="6" x2="12" y2="18"></line></svg>
-                            Upload
+                        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                            <div class="thread-mode-selector" id="thread-mode-selector">
+                                <button type="button" class="thread-mode-btn" data-mode="single">Single Thread</button>
+                                <button type="button" class="thread-mode-btn active" data-mode="multi">Multi Thread</button>
+                                <button type="button" class="thread-mode-btn" data-mode="both">Both (Sequential)</button>
+                            </div>
+                            <button id="btn-start-test" class="btn-primary" style="width:auto; padding:8px 24px; min-width:140px;">
+                                Run Diagnostics
+                            </button>
                         </div>
-                        <div class="speed-result-value" id="ul-result">--</div>
                     </div>
-                </div>
-            </div>
 
-            <!-- B. Latency Panel -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">
-                        <svg class="icon" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                        Latency (WebSocket)
-                    </h2>
-                    <button class="btn" id="btn-ping-retest" style="padding: 4px 8px; font-size: 0.75rem;">Retest</button>
-                </div>
-                
-                <div class="latency-grid">
-                    <div class="latency-stat">
-                        <div class="latency-label">Ping (Avg)</div>
-                        <div class="latency-value"><span id="ping-val" class="skeleton">0</span> <span class="latency-unit">ms</span></div>
-                    </div>
-                    <div class="latency-stat">
-                        <div class="latency-label">Jitter</div>
-                        <div class="latency-value"><span id="jitter-val" class="skeleton">0</span> <span class="latency-unit">ms</span></div>
-                    </div>
-                    <div class="latency-stat" id="loss-stat">
-                        <div class="latency-label">Loss</div>
-                        <div class="latency-value"><span id="loss-val" class="skeleton">0</span> <span class="latency-unit">%</span></div>
-                    </div>
-                </div>
-                
-                <div class="ping-chart-container">
-                    <canvas id="pingChart"></canvas>
-                </div>
-            </div>
-
-            <!-- C. Identity & Privacy Panel -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">
-                        <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                        Identity & Privacy
-                    </h2>
-                </div>
-                
-                <div class="info-list">
-                    <div class="info-item">
-                        <div class="info-item-label">IP Address</div>
-                        <div class="info-item-value" id="ip-val"><span class="skeleton">192.168.1.1</span></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-item-label">Location</div>
-                        <div class="info-item-value" id="location-val"><span class="skeleton">Mumbai, India</span></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-item-label">ISP</div>
-                        <div class="info-item-value" id="isp-val"><span class="skeleton">AS1234 Provider</span></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-item-label">VPN Status</div>
-                        <div class="info-item-value"><span id="vpn-badge" class="badge skeleton">Checking...</span></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-item-label">WebRTC Leak</div>
-                        <div class="info-item-value" id="webrtc-val"><span class="skeleton">Testing...</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- D. Game Servers Panel -->
-            <div class="card full-width">
-                <div class="card-header">
-                    <h2 class="card-title">
-                        <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect><line x1="14" y1="12" x2="18" y2="12"></line><line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line></svg>
-                        Game Server Status
-                        <div class="dot" style="width: 6px; height: 6px; background: var(--success); border-radius: 50%; box-shadow: 0 0 5px var(--success); margin-left: 8px; animation: pulse 2s infinite;"></div>
-                    </h2>
-                </div>
-                
-                <div class="gameserver-filters" id="gs-filters">
-                    <div class="filter-tab active" data-filter="all">All</div>
-                    <div class="filter-tab" data-filter="local">Local (India)</div>
-                    <div class="filter-tab" data-filter="abroad">Abroad</div>
-                    <div class="filter-tab" data-filter="valorant">Valorant</div>
-                    <div class="filter-tab" data-filter="cs2">CS2</div>
-                </div>
-                
-                <div class="gameserver-grid" id="gs-grid">
-                    <!-- Cards will be populated by JS -->
-                    <div class="gs-card skeleton" style="height: 120px;"></div>
-                    <div class="gs-card skeleton" style="height: 120px;"></div>
-                    <div class="gs-card skeleton" style="height: 120px;"></div>
-                    <div class="gs-card skeleton" style="height: 120px;"></div>
-                </div>
-            </div>
-
-            <!-- E. Advanced Diagnostics -->
-            <div class="card full-width">
-                <div class="card-header">
-                    <h2 class="card-title">
-                        <svg class="icon" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
-                        Advanced Diagnostics
-                    </h2>
-                    <button class="btn" id="btn-traceroute">Run Traceroute</button>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
-                    <div class="info-list">
-                        <div class="info-item">
-                            <div class="info-item-label">Connection Type</div>
-                            <div class="info-item-value" id="conn-type">Unknown</div>
+                    <div class="hero-speed-box">
+                        <div class="speed-readout">
+                            <span id="live-speed">0.0</span><span class="speed-unit">Mbps</span>
                         </div>
-                        <div class="info-item">
-                            <div class="info-item-label">HTTP Protocol</div>
-                            <div class="info-item-value" id="http-proto">Detecting...</div>
+                        <div id="speed-status" class="speed-status-badge">Engine Ready • Standby</div>
+                        
+                        <div class="speed-bar-track">
+                            <div id="speed-bar" class="speed-bar-fill"></div>
                         </div>
-                        <div class="info-item">
-                            <div class="info-item-label">DNS Resolution (Google)</div>
-                            <div class="info-item-value" id="dns-google">...</div>
+
+                        <div class="dual-metric-row">
+                            <div class="dual-metric-item">
+                                <div class="dual-metric-label">Download Speed</div>
+                                <div id="val-download" class="dual-metric-value">-- Mbps</div>
+                                <div id="sub-val-download" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); margin-top:4px;"></div>
+                            </div>
+                            <div class="dual-metric-item">
+                                <div class="dual-metric-label">Upload Speed</div>
+                                <div id="val-upload" class="dual-metric-value">-- Mbps</div>
+                                <div id="sub-val-upload" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); margin-top:4px;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="terminal" id="terminal-out">
-                    <div>> System Ready.</div>
-                    <div>> Click 'Run Traceroute' to trace path to 8.8.8.8</div>
-                    <div class="terminal-cursor"></div>
+
+                <!-- 2. Latency, Jitter & WebSocket Quality -->
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div>
+                            <span class="card-tag">// LATENCY & JITTER</span>
+                            <h3 class="card-title">Socket Metrics</h3>
+                        </div>
+                        <button id="btn-ping-retest" class="btn-ghost" style="padding:2px 8px; font-size:0.68rem;">RETEST</button>
+                    </div>
+                    <table class="data-table">
+                        <tr>
+                            <td>RTT Ping</td>
+                            <td id="val-ping">-- ms</td>
+                        </tr>
+                        <tr>
+                            <td>Jitter</td>
+                            <td id="val-jitter">-- ms</td>
+                        </tr>
+                        <tr>
+                            <td>Packet Loss</td>
+                            <td id="val-loss">0.0%</td>
+                        </tr>
+                        <tr>
+                            <td>WebSocket</td>
+                            <td><span id="ws-status-pill" class="status-pill pill-good">CONNECTED</span></td>
+                        </tr>
+                    </table>
                 </div>
+
+                <!-- 3. Identity, IP & Leak Detection -->
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div>
+                            <span class="card-tag">// ROUTING IDENTITY</span>
+                            <h3 class="card-title">Client IP & Leaks</h3>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <tr>
+                            <td>Public IP</td>
+                            <td id="val-ip">Querying...</td>
+                        </tr>
+                        <tr>
+                            <td>ISP & ASN</td>
+                            <td id="val-isp">--</td>
+                        </tr>
+                        <tr>
+                            <td>Location</td>
+                            <td id="val-location">--</td>
+                        </tr>
+                        <tr>
+                            <td>WebRTC Leak</td>
+                            <td id="val-webrtc"><span class="status-pill pill-good">Scanning</span></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- 4. Protocol & DNS Resolution -->
+                <div class="card col-4">
+                    <div class="card-header">
+                        <div>
+                            <span class="card-tag">// PROTOCOL TELEMETRY</span>
+                            <h3 class="card-title">DNS & Connection</h3>
+                        </div>
+                    </div>
+                    <table class="data-table">
+                        <tr>
+                            <td>Interface Type</td>
+                            <td id="val-conn-type">ETHERNET / FIBER</td>
+                        </tr>
+                        <tr>
+                            <td>HTTP Protocol</td>
+                            <td id="val-http-proto">HTTP/1.1</td>
+                        </tr>
+                        <tr>
+                            <td>DNS Google</td>
+                            <td id="val-dns-google">-- ms</td>
+                        </tr>
+                        <tr>
+                            <td>DNS Cloudflare</td>
+                            <td id="val-dns-cf">-- ms</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- 5. Game Server Latency Grid -->
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div>
+                            <span class="card-tag">// LOW-LATENCY AUDIT</span>
+                            <h3 class="card-title">Game Server Relays</h3>
+                        </div>
+                    </div>
+                    <div class="game-tabs" id="game-filter-tabs">
+                        <button class="game-tab-btn active" data-filter="all">ALL</button>
+                        <button class="game-tab-btn" data-filter="local">LOCAL (INDIA)</button>
+                        <button class="game-tab-btn" data-filter="abroad">ABROAD</button>
+                        <button class="game-tab-btn" data-filter="valorant">VALORANT</button>
+                        <button class="game-tab-btn" data-filter="cs2">CS2</button>
+                    </div>
+                    <div id="game-servers-container" class="game-grid">
+                        <div style="font-family:var(--font-mono); color:var(--text-muted); font-size:0.8rem; padding:10px;">
+                            Polling game relays...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. Network Route Trace Terminal -->
+                <div class="card col-6">
+                    <div class="card-header">
+                        <div>
+                            <span class="card-tag">// ROUTE TRACE CONSOLE</span>
+                            <h3 class="card-title">Hop-by-Hop Trace</h3>
+                        </div>
+                        <button id="btn-run-traceroute" class="btn-ghost" style="padding:4px 10px; font-size:0.7rem;">
+                            TRACE 8.8.8.8
+                        </button>
+                    </div>
+                    <div id="terminal-display" class="terminal-box">
+                        <div class="terminal-line"><span class="terminal-prompt">&gt;</span> <span>NetPulse diagnostic console initialized.</span></div>
+                        <div class="terminal-line"><span class="terminal-prompt">&gt;</span> <span>Click 'TRACE 8.8.8.8' to map routing hops.</span></div>
+                    </div>
+                </div>
+
             </div>
-        </main>
-    </div>
+        </div>
+    </section>
 
     <script>
-        // --- Globals & State ---
+        // === State Management ===
         const state = {
             authenticated: false,
             ws: null,
-            pingData: [],
+            publicIp: null,
+            testingSpeed: false,
             gameServers: [],
-            currentFilter: 'all',
-            speedtestActive: false
+            gameFilter: 'all',
+            pingSamples: []
         };
 
+        // === DOM Elements ===
         const DOM = {
-            authScreen: document.getElementById('auth-screen'),
-            dashScreen: document.getElementById('dashboard-screen'),
-            pinInputs: document.querySelectorAll('.pin-input'),
-            pinError: document.getElementById('pin-error'),
-            clock: document.getElementById('clock'),
-            btnSpeedtest: document.getElementById('btn-speedtest'),
+            html: document.documentElement,
+            btnTheme: document.getElementById('btn-theme'),
+            themeIcon: document.getElementById('theme-icon'),
+            themeText: document.getElementById('theme-text'),
+            navClock: document.getElementById('nav-clock'),
             btnLogout: document.getElementById('btn-logout'),
-            gaugeFill: document.getElementById('gauge-fill'),
-            speedValue: document.getElementById('speed-value'),
-            dlResult: document.getElementById('dl-result'),
-            ulResult: document.getElementById('ul-result'),
-            pingVal: document.getElementById('ping-val'),
-            jitterVal: document.getElementById('jitter-val'),
-            lossVal: document.getElementById('loss-val'),
-            lossStat: document.getElementById('loss-stat'),
-            btnPingRetest: document.getElementById('btn-ping-retest'),
-            pingChart: document.getElementById('pingChart'),
-            ipVal: document.getElementById('ip-val'),
-            locationVal: document.getElementById('location-val'),
-            ispVal: document.getElementById('isp-val'),
-            vpnBadge: document.getElementById('vpn-badge'),
-            webrtcVal: document.getElementById('webrtc-val'),
-            gsFilters: document.getElementById('gs-filters'),
-            gsGrid: document.getElementById('gs-grid'),
-            btnTraceroute: document.getElementById('btn-traceroute'),
-            terminalOut: document.getElementById('terminal-out'),
-            connType: document.getElementById('conn-type'),
-            httpProto: document.getElementById('http-proto'),
-            dnsGoogle: document.getElementById('dns-google')
-        };
-
-        // --- Utility Functions ---
-        const formatNumber = (num, decimals = 1) => Number(num).toFixed(decimals);
-        
-        const getPingColorClass = (ping) => {
-            if (ping === -1) return 'text-muted';
-            if (ping < 50) return 'text-green';
-            if (ping < 100) return 'text-yellow';
-            if (ping < 200) return 'text-orange';
-            return 'text-red';
-        };
-
-        const getPingBgClass = (ping) => {
-            if (ping === -1) return 'bg-base';
-            if (ping < 50) return 'bg-green';
-            if (ping < 100) return 'bg-yellow';
-            if (ping < 200) return 'bg-orange';
-            return 'bg-red';
-        };
-
-        const updateClock = () => {
-            const now = new Date();
-            DOM.clock.textContent = now.toLocaleTimeString('en-US', { hour12: false });
-        };
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        const appendTerminal = (text, isSystem = false) => {
-            const cursor = DOM.terminalOut.querySelector('.terminal-cursor');
-            const div = document.createElement('div');
-            div.textContent = isSystem ? `> ${text}` : text;
-            if (isSystem) div.style.color = 'var(--accent-light)';
-            DOM.terminalOut.insertBefore(div, cursor);
-            DOM.terminalOut.scrollTop = DOM.terminalOut.scrollHeight;
-        };
-
-        const fetchJson = async (url, options = {}) => {
-            try {
-                const res = await fetch(url, options);
-                if (!res.ok) {
-                    if (res.status === 401) {
-                        logout();
-                        throw new Error('Unauthorized');
-                    }
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-                return await res.json();
-            } catch (e) {
-                console.error(`Fetch error for ${url}:`, e);
-                return null;
-            }
-        };
-
-        // --- Auth Logic ---
-        const checkAuth = async () => {
-            const res = await fetchJson('/api/auth/check');
-            if (res && res.authenticated) {
-                showDashboard();
-            } else {
-                DOM.authScreen.classList.add('active');
-            }
-        };
-
-        const setupPinInput = () => {
-            DOM.pinInputs.forEach((input, index) => {
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Backspace' && !input.value && index > 0) {
-                        DOM.pinInputs[index - 1].focus();
-                    }
-                });
-                
-                input.addEventListener('input', (e) => {
-                    if (e.target.value.length > 1) {
-                        e.target.value = e.target.value.slice(0, 1);
-                    }
-                    if (e.target.value && index < DOM.pinInputs.length - 1) {
-                        DOM.pinInputs[index + 1].focus();
-                    }
-                    
-                    if (Array.from(DOM.pinInputs).every(i => i.value)) {
-                        submitPin();
-                    }
-                });
-            });
-        };
-
-        const submitPin = async () => {
-            const pin = Array.from(DOM.pinInputs).map(i => i.value).join('');
-            DOM.pinInputs.forEach(i => i.disabled = true);
             
+            authScreen: document.getElementById('auth-screen'),
+            dashScreen: document.getElementById('dash-screen'),
+            pinBoxes: document.querySelectorAll('.pin-box'),
+            authError: document.getElementById('auth-error'),
+            btnSubmitPin: document.getElementById('btn-submit-pin'),
+            
+            liveSpeed: document.getElementById('live-speed'),
+            speedStatus: document.getElementById('speed-status'),
+            speedBar: document.getElementById('speed-bar'),
+            valDownload: document.getElementById('val-download'),
+            valUpload: document.getElementById('val-upload'),
+            btnStartTest: document.getElementById('btn-start-test'),
+            
+            valPing: document.getElementById('val-ping'),
+            valJitter: document.getElementById('val-jitter'),
+            valLoss: document.getElementById('val-loss'),
+            wsPill: document.getElementById('ws-status-pill'),
+            btnPingRetest: document.getElementById('btn-ping-retest'),
+            
+            valIp: document.getElementById('val-ip'),
+            valIsp: document.getElementById('val-isp'),
+            valLocation: document.getElementById('val-location'),
+            valWebRtc: document.getElementById('val-webrtc'),
+            
+            valConnType: document.getElementById('val-conn-type'),
+            valHttpProto: document.getElementById('val-http-proto'),
+            valDnsGoogle: document.getElementById('val-dns-google'),
+            valDnsCf: document.getElementById('val-dns-cf'),
+            
+            gameFilterTabs: document.getElementById('game-filter-tabs'),
+            gameGrid: document.getElementById('game-servers-container'),
+            
+            terminal: document.getElementById('terminal-display'),
+            btnTraceroute: document.getElementById('btn-run-traceroute')
+        };
+
+        // === Light / Dark Mode Toggle with localStorage ===
+        function initTheme() {
+            const saved = localStorage.getItem('netpulse_theme') || 'dark';
+            setTheme(saved);
+        }
+
+        function setTheme(theme) {
+            DOM.html.setAttribute('data-theme', theme);
+            localStorage.setItem('netpulse_theme', theme);
+            if (theme === 'light') {
+                DOM.themeIcon.textContent = '☽';
+                DOM.themeText.textContent = 'DARK';
+            } else {
+                DOM.themeIcon.textContent = '☼';
+                DOM.themeText.textContent = 'LIGHT';
+            }
+        }
+
+        DOM.btnTheme.addEventListener('click', () => {
+            const current = DOM.html.getAttribute('data-theme');
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        });
+
+        // === Clock ===
+        setInterval(() => {
+            const now = new Date();
+            DOM.navClock.textContent = now.toLocaleTimeString('en-US', { hour12: false });
+        }, 1000);
+
+        // === Terminal Logging Utility ===
+        function logToTerminal(text) {
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            line.innerHTML = `<span class="terminal-prompt">&gt;</span> <span>${text}</span>`;
+            DOM.terminal.appendChild(line);
+            DOM.terminal.scrollTop = DOM.terminal.scrollHeight;
+        }
+
+        // === Authentication Gateway ===
+        DOM.pinBoxes.forEach((box, idx) => {
+            box.addEventListener('input', (e) => {
+                if (e.target.value.length === 1) {
+                    if (idx < DOM.pinBoxes.length - 1) DOM.pinBoxes[idx + 1].focus();
+                    else submitPin();
+                }
+            });
+            box.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !box.value && idx > 0) {
+                    DOM.pinBoxes[idx - 1].focus();
+                }
+            });
+            box.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const paste = (e.clipboardData || window.clipboardData).getData('text').trim();
+                if (/^\d{6}$/.test(paste)) {
+                    paste.split('').forEach((c, i) => { if (DOM.pinBoxes[i]) DOM.pinBoxes[i].value = c; });
+                    submitPin();
+                }
+            });
+        });
+
+        async function submitPin() {
+            const pin = Array.from(DOM.pinBoxes).map(b => b.value).join('');
+            if (pin.length !== 6) {
+                DOM.authError.textContent = 'Enter complete 6-digit PIN';
+                return;
+            }
+            DOM.authError.textContent = '';
+            DOM.btnSubmitPin.disabled = true;
+
             try {
                 const res = await fetch('/api/auth', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ pin })
                 });
-                
                 const data = await res.json();
-                
                 if (data.success) {
-                    DOM.pinError.classList.remove('visible');
                     showDashboard();
                 } else {
-                    showPinError(data.message || 'Incorrect PIN');
+                    DOM.authError.textContent = data.message || 'Incorrect PIN';
+                    DOM.pinBoxes.forEach(b => b.value = '');
+                    DOM.pinBoxes[0].focus();
+                }
+            } catch (err) {
+                DOM.authError.textContent = 'Gateway offline / connection failed';
+            } finally {
+                DOM.btnSubmitPin.disabled = false;
+            }
+        }
+
+        DOM.btnSubmitPin.addEventListener('click', submitPin);
+
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/auth/check');
+                const data = await res.json();
+                if (data.authenticated) {
+                    showDashboard();
+                } else {
+                    DOM.authScreen.classList.add('active');
+                    DOM.dashScreen.classList.remove('active');
                 }
             } catch (e) {
-                showPinError('Connection error. Try again.');
+                DOM.authScreen.classList.add('active');
             }
-        };
+        }
 
-        const showPinError = (msg) => {
-            DOM.pinError.textContent = msg;
-            DOM.pinError.classList.add('visible');
-            DOM.pinInputs.forEach(i => {
-                i.disabled = false;
-                i.value = '';
-            });
-            DOM.pinInputs[0].focus();
-            DOM.authScreen.querySelector('.auth-card').classList.add('shake');
-            setTimeout(() => {
-                DOM.authScreen.querySelector('.auth-card').classList.remove('shake');
-            }, 500);
-        };
-
-        const showDashboard = () => {
+        function showDashboard() {
             DOM.authScreen.classList.remove('active');
-            setTimeout(() => {
-                DOM.dashScreen.classList.add('active');
-                initDashboard();
-            }, 300);
-        };
+            DOM.dashScreen.classList.add('active');
+            DOM.btnLogout.style.display = 'inline-flex';
+            initDashboardData();
+        }
 
-        const logout = () => {
-            document.cookie = "auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        DOM.btnLogout.addEventListener('click', async () => {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+            } catch (e) {}
             location.reload();
-        };
+        });
 
-        DOM.btnLogout.addEventListener('click', logout);
-        
-        // --- Dashboard Initialization ---
-        const initDashboard = () => {
-            setupWebSocket();
-            fetchIdentityInfo();
-            runWebRTCTest();
-            runAdvancedDiagnostics();
-            initPingCanvas();
-        };
+        // === Dashboard Operations ===
+        function initDashboardData() {
+            initWebSocket();
+            fetchIdentity();
+            fetchNetworkDiag();
+            runWebRtcCheck();
+        }
 
-        // --- WebSocket (Latency & Game Servers) ---
-        const setupWebSocket = () => {
-            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            state.ws = new WebSocket(`${wsProtocol}//${location.host}/ws`);
-            
+        // 1. WebSocket Latency & Game Server Stream
+        function initWebSocket() {
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            state.ws = new WebSocket(`${proto}//${location.host}/ws`);
+
             state.ws.onopen = () => {
-                console.log('WS Connected');
-                // Start initial latency test
-                startLatencyTest();
-                // Subscribe to game servers
+                DOM.wsPill.textContent = 'CONNECTED';
+                DOM.wsPill.className = 'status-pill pill-good';
+                startPingTest();
                 state.ws.send(JSON.stringify({ type: 'subscribe-gameservers' }));
             };
-            
+
             state.ws.onmessage = (event) => {
                 try {
                     const msg = JSON.parse(event.data);
-                    
                     if (msg.type === 'pong') {
-                        handlePong(msg.ts, msg.clientTs);
+                        const rtt = performance.now() - msg.clientTs;
+                        handlePingSample(rtt);
                     } else if (msg.type === 'gameserver-update') {
-                        handleGameServersUpdate(msg.data);
+                        state.gameServers = msg.data || [];
+                        renderGameServers();
                     }
-                } catch (e) {
-                    console.error('WS parse error', e);
-                }
+                } catch (e) {}
             };
-            
-            state.ws.onclose = () => {
-                setTimeout(setupWebSocket, 3000);
-            };
-        };
 
-        // --- Latency Logic ---
-        let pingInterval;
+            state.ws.onclose = () => {
+                DOM.wsPill.textContent = 'DISCONNECTED';
+                DOM.wsPill.className = 'status-pill pill-bad';
+                setTimeout(initWebSocket, 3000);
+            };
+        }
+
         let pingCount = 0;
-        
-        const startLatencyTest = () => {
-            state.pingData = [];
+        let pingTimer = null;
+        function startPingTest() {
+            state.pingSamples = [];
             pingCount = 0;
-            clearInterval(pingInterval);
-            
-            DOM.pingVal.classList.add('skeleton');
-            DOM.jitterVal.classList.add('skeleton');
-            DOM.lossVal.classList.add('skeleton');
-            
-            pingInterval = setInterval(() => {
-                if (state.ws.readyState === WebSocket.OPEN) {
+            clearInterval(pingTimer);
+
+            pingTimer = setInterval(() => {
+                if (state.ws && state.ws.readyState === WebSocket.OPEN) {
                     state.ws.send(JSON.stringify({ type: 'ping', clientTs: performance.now() }));
                     pingCount++;
-                    
-                    if (pingCount >= 20) {
-                        clearInterval(pingInterval);
-                    }
+                    if (pingCount >= 15) clearInterval(pingTimer);
                 }
-            }, 200); // 20 pings over 4 seconds
-        };
+            }, 250);
+        }
 
-        DOM.btnPingRetest.addEventListener('click', startLatencyTest);
+        DOM.btnPingRetest.addEventListener('click', startPingTest);
 
-        const handlePong = (serverTs, clientTs) => {
-            const rtt = performance.now() - clientTs;
-            state.pingData.push(rtt);
-            
-            if (state.pingData.length > 20) state.pingData.shift();
-            
-            updateLatencyUI();
-            drawPingChart();
-        };
+        function handlePingSample(rtt) {
+            state.pingSamples.push(rtt);
+            if (state.pingSamples.length > 20) state.pingSamples.shift();
 
-        const updateLatencyUI = () => {
-            if (state.pingData.length === 0) return;
-            
-            const pings = state.pingData;
+            const pings = state.pingSamples;
             const avg = pings.reduce((a, b) => a + b, 0) / pings.length;
-            
-            // Jitter: avg absolute diff between consecutive pings
+
             let jitter = 0;
             if (pings.length > 1) {
-                let sumDiff = 0;
+                let diffSum = 0;
                 for (let i = 1; i < pings.length; i++) {
-                    sumDiff += Math.abs(pings[i] - pings[i-1]);
+                    diffSum += Math.abs(pings[i] - pings[i - 1]);
                 }
-                jitter = sumDiff / (pings.length - 1);
+                jitter = diffSum / (pings.length - 1);
             }
-            
-            // Assume no loss for WS test, but could track sequence numbers
-            const loss = 0;
-            
-            DOM.pingVal.textContent = formatNumber(avg, 1);
-            DOM.pingVal.classList.remove('skeleton');
-            
-            DOM.jitterVal.textContent = formatNumber(jitter, 1);
-            DOM.jitterVal.classList.remove('skeleton');
-            
-            DOM.lossVal.textContent = formatNumber(loss, 1);
-            DOM.lossVal.classList.remove('skeleton');
-            
-            // Update loss color
-            DOM.lossStat.style.borderColor = loss > 5 ? 'var(--error)' : (loss > 1 ? 'var(--warning)' : 'transparent');
-        };
 
-        // --- Canvas Ping Chart ---
-        const initPingCanvas = () => {
-            const canvas = DOM.pingChart;
-            const ctx = canvas.getContext('2d');
-            
-            const resize = () => {
-                const rect = canvas.parentElement.getBoundingClientRect();
-                canvas.width = rect.width;
-                canvas.height = rect.height;
-                drawPingChart();
-            };
-            
-            window.addEventListener('resize', resize);
-            resize();
-        };
+            DOM.valPing.textContent = `${avg.toFixed(1)} ms`;
+            DOM.valJitter.textContent = `${jitter.toFixed(1)} ms`;
+            DOM.valLoss.textContent = '0.0%';
+        }
 
-        const drawPingChart = () => {
-            const canvas = DOM.pingChart;
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
-            const pings = state.pingData;
-            
-            ctx.clearRect(0, 0, width, height);
-            
-            if (pings.length < 2) return;
-            
-            const maxPing = Math.max(100, ...pings) * 1.2; // Min scale 100ms
-            
-            ctx.beginPath();
-            ctx.strokeStyle = 'var(--accent)';
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            const step = width / (20 - 1); // 20 max points
-            const startX = width - (pings.length - 1) * step;
-            
-            pings.forEach((ping, i) => {
-                const x = startX + i * step;
-                const y = height - (ping / maxPing) * height * 0.8 - 10; // 10px padding bottom
-                
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            });
-            
-            ctx.stroke();
-            
-            // Fill gradient
-            const gradient = ctx.createLinearGradient(0, 0, 0, height);
-            gradient.addColorStop(0, 'var(--accent-dim)');
-            gradient.addColorStop(1, 'rgba(0,0,0,0)');
-            
-            ctx.lineTo(width, height);
-            ctx.lineTo(startX, height);
-            ctx.fillStyle = gradient;
-            ctx.fill();
-        };
-
-        // --- Speed Test ---
-        const setGaugeValue = (speed) => {
-            DOM.speedValue.textContent = formatNumber(speed, 1);
-            
-            // Convert speed to dashoffset
-            // Max gauge speed 1000 Mbps
-            let scaleMax = 100;
-            if (speed > 80) scaleMax = 500;
-            if (speed > 400) scaleMax = 1000;
-            
-            const percent = Math.min(speed / scaleMax, 1);
-            
-            // Dash array is 471 (pi * 150 approx for r=80 in viewbox)
-            // Arc length: r=80, angle=180deg -> pi * 80 = 251.2
-            const arcLength = 251.2;
-            const dashArrayStr = `${arcLength} ${arcLength}`;
-            const offset = arcLength - (percent * arcLength);
-            
-            DOM.gaugeFill.style.strokeDasharray = dashArrayStr;
-            DOM.gaugeFill.style.strokeDashoffset = offset;
-        };
-        
-        // Init gauge zero
-        DOM.gaugeFill.style.strokeDasharray = "251.2 251.2";
-        DOM.gaugeFill.style.strokeDashoffset = "251.2";
-
-        DOM.btnSpeedtest.addEventListener('click', async () => {
-            if (state.speedtestActive) return;
-            state.speedtestActive = true;
-            DOM.btnSpeedtest.disabled = true;
-            DOM.dlResult.textContent = '--';
-            DOM.ulResult.textContent = '--';
-            
+        // 2. Identity & GeoIP
+        async function fetchIdentity() {
             try {
-                // ==========================================
-                // 1. MULTI-STREAM DOWNLOAD TEST (4 Parallel Streams)
-                // ==========================================
-                DOM.btnSpeedtest.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg> Testing Download...';
-                
-                const CONCURRENCY = 4;
-                const TEST_DURATION_MS = 6000;
-                let active = true;
-                let streamBytes = new Array(CONCURRENCY).fill(0);
-                let speedHistory = [];
-                const startTime = performance.now();
-                
-                const runDownloadStream = async (index) => {
-                    while (active) {
-                        try {
-                            const res = await fetch(`/api/download?size=30`, { cache: 'no-store' });
-                            const reader = res.body.getReader();
-                            while (active) {
-                                const { done, value } = await reader.read();
-                                if (done) break;
-                                streamBytes[index] += value.length;
-                            }
-                        } catch (e) { break; }
-                    }
-                };
-                
-                // Launch parallel download workers
-                const downloadTasks = [];
-                for (let i = 0; i < CONCURRENCY; i++) {
-                    downloadTasks.push(runDownloadStream(i));
-                }
-                
-                // Sample throughput every 100ms
-                let lastTime = startTime;
-                let lastBytes = 0;
-                
-                const sampleInterval = setInterval(() => {
-                    const now = performance.now();
-                    const currentTotalBytes = streamBytes.reduce((a, b) => a + b, 0);
-                    const bytesDiff = currentTotalBytes - lastBytes;
-                    const timeDiffSec = (now - lastTime) / 1000;
+                const res = await fetch('/api/ip-info');
+                const data = await res.json();
+                if (data.success) {
+                    state.publicIp = data.ip;
+                    DOM.valIp.textContent = data.ip;
+                    DOM.valIsp.textContent = `${data.isp} (${data.asn || ''})`;
                     
-                    if (timeDiffSec > 0) {
-                        const currentMbps = (bytesDiff * 8) / timeDiffSec / 1000000;
-                        if (now - startTime > 1000) { // Ignore warm-up 1st second (TCP slow-start)
-                            speedHistory.push(currentMbps);
-                        }
-                        setGaugeValue(currentMbps);
+                    let flag = '';
+                    if (data.countryCode && data.countryCode.length === 2) {
+                        flag = ' ' + String.fromCodePoint(...data.countryCode.toUpperCase().split('').map(c => 127397 + c.charCodeAt(0)));
                     }
-                    lastTime = now;
-                    lastBytes = currentTotalBytes;
-                }, 100);
-                
-                await new Promise(r => setTimeout(r, TEST_DURATION_MS));
-                active = false;
-                clearInterval(sampleInterval);
-                
-                // Calculate 80th percentile peak download speed
-                let finalDlMbps = 0;
-                if (speedHistory.length > 0) {
-                    speedHistory.sort((a, b) => a - b);
-                    const p80Index = Math.floor(speedHistory.length * 0.85);
-                    finalDlMbps = speedHistory[p80Index] || speedHistory[speedHistory.length - 1];
-                } else {
-                    const elapsed = (performance.now() - startTime) / 1000;
-                    finalDlMbps = (lastBytes * 8) / elapsed / 1000000;
+                    DOM.valLocation.textContent = `${data.city}, ${data.country}${flag}`;
                 }
-                
-                DOM.dlResult.textContent = formatNumber(finalDlMbps, 1) + ' Mbps';
-                setGaugeValue(finalDlMbps);
-                await new Promise(r => setTimeout(r, 600));
-
-                // ==========================================
-                // 2. MULTI-STREAM UPLOAD TEST (4 Parallel Streams)
-                // ==========================================
-                DOM.btnSpeedtest.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg> Testing Upload...';
-                
-                active = true;
-                let ulBytes = new Array(CONCURRENCY).fill(0);
-                let ulSpeedHistory = [];
-                const ulStartTime = performance.now();
-                
-                // Preallocate 5MB payload for upload
-                const uploadPayload = new ArrayBuffer(5 * 1024 * 1024);
-                
-                const runUploadStream = async (index) => {
-                    while (active) {
-                        try {
-                            const res = await fetch('/api/upload', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/octet-stream' },
-                                body: uploadPayload
-                            });
-                            const data = await res.json();
-                            if (data && data.bytes) {
-                                ulBytes[index] += data.bytes;
-                            }
-                        } catch (e) { break; }
-                    }
-                };
-                
-                const uploadTasks = [];
-                for (let i = 0; i < CONCURRENCY; i++) {
-                    uploadTasks.push(runUploadStream(i));
-                }
-                
-                let ulLastTime = ulStartTime;
-                let ulLastBytes = 0;
-                
-                const ulSampleInterval = setInterval(() => {
-                    const now = performance.now();
-                    const currentTotalBytes = ulBytes.reduce((a, b) => a + b, 0);
-                    const bytesDiff = currentTotalBytes - ulLastBytes;
-                    const timeDiffSec = (now - ulLastTime) / 1000;
-                    
-                    if (timeDiffSec > 0) {
-                        const currentMbps = (bytesDiff * 8) / timeDiffSec / 1000000;
-                        if (now - ulStartTime > 800) {
-                            ulSpeedHistory.push(currentMbps);
-                        }
-                        setGaugeValue(currentMbps);
-                    }
-                    ulLastTime = now;
-                    ulLastBytes = currentTotalBytes;
-                }, 100);
-                
-                await new Promise(r => setTimeout(r, 5000));
-                active = false;
-                clearInterval(ulSampleInterval);
-                
-                let finalUlMbps = 0;
-                if (ulSpeedHistory.length > 0) {
-                    ulSpeedHistory.sort((a, b) => a - b);
-                    const p80Index = Math.floor(ulSpeedHistory.length * 0.85);
-                    finalUlMbps = ulSpeedHistory[p80Index] || ulSpeedHistory[ulSpeedHistory.length - 1];
-                } else {
-                    const elapsed = (performance.now() - ulStartTime) / 1000;
-                    finalUlMbps = (ulLastBytes * 8) / elapsed / 1000000;
-                }
-                
-                DOM.ulResult.textContent = formatNumber(finalUlMbps, 1) + ' Mbps';
-                setGaugeValue(finalUlMbps);
-                
             } catch (e) {
-                console.error('Speed test error', e);
-                DOM.dlResult.textContent = 'Error';
-                DOM.ulResult.textContent = 'Error';
-            } finally {
-                state.speedtestActive = false;
-                DOM.btnSpeedtest.disabled = false;
-                DOM.btnSpeedtest.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Run Full Test';
-                setTimeout(() => setGaugeValue(0), 1500);
+                DOM.valIp.textContent = 'Error';
             }
+        }
+
+        // 3. Real WebRTC Leak Check
+        function runWebRtcCheck() {
+            try {
+                const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+                pc.createDataChannel('');
+                pc.createOffer().then(o => pc.setLocalDescription(o));
+
+                let detectedIp = null;
+                pc.onicecandidate = (e) => {
+                    if (!e.candidate) {
+                        evaluateWebRtcLeak(detectedIp);
+                        return;
+                    }
+                    const match = e.candidate.candidate.match(/([0-9]{1,3}(\.[0-9]{1,3}){3})/);
+                    if (match && !detectedIp) {
+                        detectedIp = match[1];
+                    }
+                };
+
+                setTimeout(() => evaluateWebRtcLeak(detectedIp), 2500);
+            } catch (e) {
+                DOM.valWebRtc.innerHTML = '<span class="status-pill pill-warn">BLOCKED</span>';
+            }
+        }
+
+        function evaluateWebRtcLeak(detectedIp) {
+            if (!detectedIp) {
+                DOM.valWebRtc.innerHTML = '<span class="status-pill pill-good">NO LEAK</span>';
+                return;
+            }
+            // Check if detected WebRTC IP matches the server detected IP
+            if (state.publicIp && detectedIp !== state.publicIp && !detectedIp.startsWith('192.168.') && !detectedIp.startsWith('10.') && !detectedIp.startsWith('172.')) {
+                DOM.valWebRtc.innerHTML = `<span class="status-pill pill-bad">LEAK DETECTED</span> <span style="font-size:0.75rem">${detectedIp}</span>`;
+            } else {
+                DOM.valWebRtc.innerHTML = `<span class="status-pill pill-good">SECURE (${detectedIp})</span>`;
+            }
+        }
+
+        // 4. DNS Diagnostics
+        async function fetchNetworkDiag() {
+            try {
+                const res = await fetch('/api/network/dns-resolve');
+                const data = await res.json();
+                if (data.success && data.results) {
+                    if (data.results['google.com']?.timeMs) {
+                        DOM.valDnsGoogle.textContent = `${data.results['google.com'].timeMs} ms`;
+                    }
+                    if (data.results['cloudflare.com']?.timeMs) {
+                        DOM.valDnsCf.textContent = `${data.results['cloudflare.com'].timeMs} ms`;
+                    }
+                }
+            } catch (e) {}
+
+            if (navigator.connection) {
+                const type = (navigator.connection.effectiveType || 'FIBER').toUpperCase();
+                DOM.valConnType.textContent = `${type} / BROADBAND`;
+            }
+            const nav = performance.getEntriesByType("navigation")[0];
+            if (nav && nav.nextHopProtocol) {
+                DOM.valHttpProto.textContent = nav.nextHopProtocol.toUpperCase();
+            }
+        }
+
+        // 5. Game Server Render
+        DOM.gameFilterTabs.querySelectorAll('.game-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                DOM.gameFilterTabs.querySelectorAll('.game-tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.gameFilter = btn.dataset.filter;
+                renderGameServers();
+            });
         });
 
-        // --- Identity Info ---
-        const fetchIdentityInfo = async () => {
-            try {
-                const res = await fetchJson('/api/ip-info');
-                if (res && res.ip) {
-                    DOM.ipVal.textContent = res.ip;
-                    
-                    // Convert 2-letter country code to flag emoji
-                    let flagEmoji = '';
-                    if (res.countryCode && res.countryCode.length === 2) {
-                        flagEmoji = ' ' + String.fromCodePoint(...res.countryCode.toUpperCase().split('').map(c => 127397 + c.charCodeAt(0)));
-                    }
-                    
-                    DOM.locationVal.textContent = `${res.city || ''}, ${res.country || ''}${flagEmoji}`;
-                    DOM.ispVal.textContent = `${res.isp} (${res.asn || ''})`;
-                    
-                    if (res.isVpn) {
-                        DOM.vpnBadge.textContent = 'VPN / Proxy';
-                        DOM.vpnBadge.className = 'badge warning';
-                    } else {
-                        DOM.vpnBadge.textContent = 'Direct Connect';
-                        DOM.vpnBadge.className = 'badge success';
-                    }
-                } else {
-                    DOM.ipVal.textContent = 'Unavailable';
-                    DOM.locationVal.textContent = 'Unavailable';
-                    DOM.ispVal.textContent = 'Unavailable';
-                }
-            } catch (e) {
-                console.error('Identity fetch error', e);
-            }
-        };
+        function renderGameServers() {
+            if (!state.gameServers || state.gameServers.length === 0) return;
+            let list = state.gameServers;
+            if (state.gameFilter === 'local') list = list.filter(s => s.type === 'local');
+            else if (state.gameFilter === 'abroad') list = list.filter(s => s.type === 'abroad');
+            else if (state.gameFilter !== 'all') list = list.filter(s => s.game.toLowerCase().includes(state.gameFilter));
 
-        // --- WebRTC Leak Test ---
-        const runWebRTCTest = () => {
-            const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-            pc.createDataChannel('');
-            pc.createOffer().then(offer => pc.setLocalDescription(offer));
-            
-            let foundIp = false;
-            pc.onicecandidate = (event) => {
-                if (!event.candidate) {
-                    if (!foundIp) {
-                        DOM.webrtcVal.innerHTML = '<span class="text-muted">Test Failed</span>';
-                    }
-                    return;
-                }
-                
-                const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
-                const match = event.candidate.candidate.match(ipRegex);
-                if (match) {
-                    foundIp = true;
-                    // In a real app, compare with server IP
-                    DOM.webrtcVal.innerHTML = `<span class="badge success">✅ No Leak</span> <span style="font-size:0.8rem; margin-left:8px;" class="text-muted">${match[1]}</span>`;
-                    pc.close();
-                }
-            };
-            
-            setTimeout(() => {
-                if(!foundIp) DOM.webrtcVal.innerHTML = '<span class="text-muted">Timeout</span>';
-            }, 3000);
-        };
+            DOM.gameGrid.innerHTML = list.map(s => {
+                const ping = s.latency || s.ping || 0;
+                let pingColor = 'var(--stat-green)';
+                if (!s.alive || ping === 0) pingColor = 'var(--stat-red)';
+                else if (ping > 120) pingColor = 'var(--stat-yellow)';
 
-        // --- Advanced Diagnostics ---
-        const runAdvancedDiagnostics = () => {
-            // Connection Type
-            if (navigator.connection) {
-                const rawType = (navigator.connection.type || '').toLowerCase();
-                const effType = (navigator.connection.effectiveType || '').toUpperCase();
-                let display = 'BROADBAND / FIBER (' + effType + ')';
-                if (rawType === 'wifi') display = 'WI-FI (' + effType + ')';
-                else if (rawType === 'ethernet') display = 'ETHERNET / FIBER';
-                else if (rawType === 'cellular') display = 'CELLULAR (' + effType + ')';
-                DOM.connType.textContent = display;
-            } else {
-                DOM.connType.textContent = 'BROADBAND / FIBER';
-            }
-            
-            // HTTP Protocol
-            // Resource timing API to check protocol
-            const p = performance.getEntriesByType("navigation")[0];
-            if (p && p.nextHopProtocol) {
-                DOM.httpProto.textContent = p.nextHopProtocol.toUpperCase();
-            } else {
-                DOM.httpProto.textContent = window.location.protocol.replace(':', '').toUpperCase();
-            }
-            
-            // DNS Resolve
-            fetchJson('/api/network/dns-resolve').then(res => {
-                if(res && res.results) {
-                    // Backend returns object keyed by domain
-                    const googleEntry = res.results['google.com'];
-                    if(googleEntry && googleEntry.timeMs) {
-                        const ip = googleEntry.addresses ? googleEntry.addresses[0] : '';
-                        DOM.dnsGoogle.textContent = `${googleEntry.timeMs}ms${ip ? ' (' + ip + ')' : ''}`;
-                    }
-                } else {
-                    DOM.dnsGoogle.textContent = 'N/A';
-                }
-            });
-        };
+                return `
+                    <div class="game-card">
+                        <div>
+                            <div class="name">${s.game} - ${s.name}</div>
+                            <div class="meta">${s.region} • ${s.type.toUpperCase()}</div>
+                        </div>
+                        <div class="ping-val" style="color:${pingColor}">
+                            ${s.alive && ping > 0 ? Math.round(ping) + 'ms' : 'DOWN'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
 
+        // 6. Traceroute Runner
         DOM.btnTraceroute.addEventListener('click', async () => {
             DOM.btnTraceroute.disabled = true;
-            appendTerminal('Running traceroute to 8.8.8.8...', true);
+            logToTerminal('Executing path trace to 8.8.8.8 (max 8 hops)...');
             try {
-                const res = await fetchJson('/api/network/traceroute/8.8.8.8');
-                if (res && res.raw) {
-                    const lines = res.raw.split('\n').filter(l => l.trim());
-                    let delay = 0;
-                    lines.forEach((line, i) => {
-                        setTimeout(() => {
-                            appendTerminal(line);
-                            if (i === lines.length - 1) {
-                                appendTerminal('Trace complete.', true);
-                                DOM.btnTraceroute.disabled = false;
-                            }
-                        }, delay);
-                        delay += 200;
+                const res = await fetch('/api/network/traceroute/8.8.8.8');
+                const data = await res.json();
+                if (data.raw) {
+                    data.raw.split('\n').filter(l => l.trim()).forEach(line => {
+                        logToTerminal(line);
                     });
+                    logToTerminal('Trace completed successfully.');
                 } else {
-                    appendTerminal('Traceroute failed or timed out.', true);
-                    DOM.btnTraceroute.disabled = false;
+                    logToTerminal('Traceroute completed without data.');
                 }
             } catch (e) {
-                appendTerminal('Error: ' + e.message, true);
+                logToTerminal('Traceroute error: ' + e.message);
+            } finally {
                 DOM.btnTraceroute.disabled = false;
             }
         });
 
-        // --- Game Servers ---
-        const handleGameServersUpdate = (data) => {
-            state.gameServers = data;
-            renderGameServers();
-        };
+        // 7. Full Speedtest Suite with Threading Options & Stop Button
+        let activeAbortController = null;
+        let selectedThreadMode = 'multi';
 
-        const renderGameServers = () => {
-            const grid = DOM.gsGrid;
-            grid.innerHTML = '';
-            
-            let filtered = state.gameServers;
-            if (state.currentFilter !== 'all') {
-                if (state.currentFilter === 'local') {
-                    filtered = filtered.filter(s => s.type === 'local');
-                } else if (state.currentFilter === 'abroad') {
-                    filtered = filtered.filter(s => s.type === 'abroad');
-                } else {
-                    filtered = filtered.filter(s => s.game.toLowerCase() === state.currentFilter);
+        const threadModeButtons = document.querySelectorAll('.thread-mode-btn');
+        const subValDownload = document.getElementById('sub-val-download');
+        const subValUpload = document.getElementById('sub-val-upload');
+
+        threadModeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (state.testingSpeed) return;
+                threadModeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedThreadMode = btn.dataset.mode;
+            });
+        });
+
+        function resetTestButton() {
+            state.testingSpeed = false;
+            activeAbortController = null;
+            DOM.btnStartTest.className = 'btn-primary';
+            DOM.btnStartTest.textContent = 'Run Diagnostics';
+            setTimeout(() => {
+                DOM.speedBar.style.width = '0%';
+            }, 1000);
+        }
+
+        async function runDownloadPhase(concurrency, signal, labelPrefix = '') {
+            DOM.speedStatus.textContent = `${labelPrefix}Testing Download (${concurrency} stream${concurrency > 1 ? 's' : ''})...`;
+            let active = true;
+            let streamBytes = new Array(concurrency).fill(0);
+            let speedSamples = [];
+            const startDl = performance.now();
+
+            const runDlStream = async (idx) => {
+                while (active && !signal.aborted) {
+                    try {
+                        const res = await fetch('/api/download?size=25', { cache: 'no-store', signal });
+                        const reader = res.body.getReader();
+                        while (active && !signal.aborted) {
+                            const { done, value } = await reader.read();
+                            if (done || signal.aborted) break;
+                            streamBytes[idx] += value.length;
+                        }
+                    } catch (e) { break; }
                 }
+            };
+
+            const workers = [];
+            for (let i = 0; i < concurrency; i++) workers.push(runDlStream(i));
+
+            let lastBytes = 0;
+            let lastTime = startDl;
+
+            const dlSampler = setInterval(() => {
+                if (signal.aborted) return;
+                const now = performance.now();
+                const totalBytes = streamBytes.reduce((a, b) => a + b, 0);
+                const diffBytes = totalBytes - lastBytes;
+                const diffTime = (now - lastTime) / 1000;
+
+                if (diffTime > 0) {
+                    const mbps = (diffBytes * 8) / diffTime / 1000000;
+                    if (now - startDl > 600) speedSamples.push(mbps);
+                    DOM.liveSpeed.textContent = mbps.toFixed(1);
+                    DOM.speedBar.style.width = Math.min((mbps / 500) * 100, 100) + '%';
+                }
+                lastBytes = totalBytes;
+                lastTime = now;
+            }, 100);
+
+            const DURATION = 5000;
+            const checkSteps = 50;
+            for (let s = 0; s < checkSteps; s++) {
+                if (signal.aborted) break;
+                await new Promise(r => setTimeout(r, DURATION / checkSteps));
             }
-            
-            if (filtered.length === 0) {
-                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);font-family:var(--font-mono);font-size:0.85rem;">Waiting for game server data...</div>';
+
+            active = false;
+            clearInterval(dlSampler);
+
+            if (signal.aborted) throw new Error('Aborted');
+
+            speedSamples.sort((a, b) => a - b);
+            const finalDl = speedSamples.length > 0
+                ? speedSamples[Math.floor(speedSamples.length * 0.85)]
+                : (lastBytes * 8) / ((performance.now() - startDl) / 1000) / 1000000;
+
+            DOM.liveSpeed.textContent = finalDl.toFixed(1);
+            return parseFloat(finalDl.toFixed(1));
+        }
+
+        async function runUploadPhase(concurrency, signal, labelPrefix = '') {
+            DOM.speedStatus.textContent = `${labelPrefix}Testing Upload (${concurrency} stream${concurrency > 1 ? 's' : ''})...`;
+            let active = true;
+            let ulBytes = new Array(concurrency).fill(0);
+            let ulSamples = [];
+            const startUl = performance.now();
+            const payload = new Uint8Array(4 * 1024 * 1024);
+
+            const runUlStream = async (idx) => {
+                while (active && !signal.aborted) {
+                    try {
+                        const res = await fetch('/api/upload', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/octet-stream' },
+                            body: payload,
+                            signal
+                        });
+                        const data = await res.json();
+                        if (data.bytes) {
+                            ulBytes[idx] += data.bytes;
+                        }
+                    } catch (e) { break; }
+                }
+            };
+
+            const ulWorkers = [];
+            for (let i = 0; i < concurrency; i++) ulWorkers.push(runUlStream(i));
+
+            let ulLastBytes = 0;
+            let ulLastTime = startUl;
+
+            const ulSampler = setInterval(() => {
+                if (signal.aborted) return;
+                const now = performance.now();
+                const totalBytes = ulBytes.reduce((a, b) => a + b, 0);
+                const diffBytes = totalBytes - ulLastBytes;
+                const diffTime = (now - ulLastTime) / 1000;
+
+                if (diffTime > 0) {
+                    const mbps = (diffBytes * 8) / diffTime / 1000000;
+                    if (now - startUl > 600) ulSamples.push(mbps);
+                    DOM.liveSpeed.textContent = mbps.toFixed(1);
+                    DOM.speedBar.style.width = Math.min((mbps / 500) * 100, 100) + '%';
+                }
+                ulLastBytes = totalBytes;
+                ulLastTime = now;
+            }, 100);
+
+            const DURATION = 4500;
+            const checkSteps = 45;
+            for (let s = 0; s < checkSteps; s++) {
+                if (signal.aborted) break;
+                await new Promise(r => setTimeout(r, DURATION / checkSteps));
+            }
+
+            active = false;
+            clearInterval(ulSampler);
+
+            if (signal.aborted) throw new Error('Aborted');
+
+            ulSamples.sort((a, b) => a - b);
+            const finalUl = ulSamples.length > 0
+                ? ulSamples[Math.floor(ulSamples.length * 0.85)]
+                : (ulLastBytes * 8) / ((performance.now() - startUl) / 1000) / 1000000;
+
+            DOM.liveSpeed.textContent = finalUl.toFixed(1);
+            return parseFloat(finalUl.toFixed(1));
+        }
+
+        DOM.btnStartTest.addEventListener('click', async () => {
+            // STOP ACTION
+            if (state.testingSpeed) {
+                if (activeAbortController) {
+                    activeAbortController.abort();
+                }
+                DOM.speedStatus.textContent = 'Diagnostics stopped by user';
+                resetTestButton();
                 return;
             }
-            
-            filtered.forEach(server => {
-                const ping = server.latency || server.ping || 0;
-                const card = document.createElement('div');
-                card.className = 'gs-card';
-                card.innerHTML = `
-                    <div class="gs-header">
-                        <div class="gs-title-wrap">
-                            <span class="gs-name">${server.game} - ${server.name}</span>
-                        </div>
-                        <span class="badge ${server.alive ? 'success' : 'error'}">${server.alive ? 'Online' : 'Offline'}</span>
-                    </div>
-                    <div class="gs-region">${server.region} • ${server.type}</div>
-                    <div class="gs-metrics">
-                        <div>
-                            <div class="gs-ping ${getPingColorClass(ping)}">${ping > 0 ? Math.round(ping) : '--'}<span class="gs-ping-unit">ms</span></div>
-                        </div>
-                    </div>
-                    <div class="gs-bar-bg">
-                        <div class="gs-bar-fill ${getPingBgClass(ping)}" style="width: ${ping > 0 ? Math.min(ping / 2, 100) : 0}%"></div>
-                    </div>
-                `;
-                
-                // Add pulse animation class to ping text
-                const pingEl = card.querySelector('.gs-ping');
-                pingEl.classList.add('gs-pulse');
-                setTimeout(() => pingEl.classList.remove('gs-pulse'), 500);
-                
-                grid.appendChild(card);
-            });
-        };
 
-        // Filter clicks
-        DOM.gsFilters.addEventListener('click', (e) => {
-            if (e.target.classList.contains('filter-tab')) {
-                DOM.gsFilters.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-                e.target.classList.add('active');
-                state.currentFilter = e.target.dataset.filter;
-                renderGameServers();
+            // START ACTION -> Turns into Stop Button
+            state.testingSpeed = true;
+            activeAbortController = new AbortController();
+            const signal = activeAbortController.signal;
+
+            DOM.btnStartTest.className = 'btn-primary btn-stop';
+            DOM.btnStartTest.innerHTML = '&#x25A0; Stop Diagnostics';
+
+            DOM.valDownload.textContent = '-- Mbps';
+            DOM.valUpload.textContent = '-- Mbps';
+            subValDownload.textContent = '';
+            subValUpload.textContent = '';
+
+            try {
+                if (selectedThreadMode === 'single') {
+                    // Single Thread Mode (1 stream)
+                    const dl = await runDownloadPhase(1, signal);
+                    DOM.valDownload.textContent = `${dl} Mbps`;
+                    subValDownload.textContent = 'Mode: Single Thread (1 stream)';
+                    await new Promise(r => setTimeout(r, 400));
+
+                    const ul = await runUploadPhase(1, signal);
+                    DOM.valUpload.textContent = `${ul} Mbps`;
+                    subValUpload.textContent = 'Mode: Single Thread (1 stream)';
+                    DOM.speedStatus.textContent = 'Single-Thread Benchmark Complete';
+                }
+                else if (selectedThreadMode === 'multi') {
+                    // Multi Thread Mode (4 streams)
+                    const dl = await runDownloadPhase(4, signal);
+                    DOM.valDownload.textContent = `${dl} Mbps`;
+                    subValDownload.textContent = 'Mode: Multi Thread (4 streams)';
+                    await new Promise(r => setTimeout(r, 400));
+
+                    const ul = await runUploadPhase(4, signal);
+                    DOM.valUpload.textContent = `${ul} Mbps`;
+                    subValUpload.textContent = 'Mode: Multi Thread (4 streams)';
+                    DOM.speedStatus.textContent = 'Multi-Thread Benchmark Complete';
+                }
+                else if (selectedThreadMode === 'both') {
+                    // Sequential: Single Thread First, then Multi Thread
+                    // 1. Single Thread Download
+                    const sDl = await runDownloadPhase(1, signal, '[1/4] Single ');
+                    DOM.valDownload.textContent = `${sDl} Mbps`;
+                    subValDownload.textContent = `Single: ${sDl} Mbps`;
+                    await new Promise(r => setTimeout(r, 400));
+
+                    // 2. Single Thread Upload
+                    const sUl = await runUploadPhase(1, signal, '[2/4] Single ');
+                    DOM.valUpload.textContent = `${sUl} Mbps`;
+                    subValUpload.textContent = `Single: ${sUl} Mbps`;
+                    await new Promise(r => setTimeout(r, 600));
+
+                    // 3. Multi Thread Download
+                    const mDl = await runDownloadPhase(4, signal, '[3/4] Multi ');
+                    DOM.valDownload.textContent = `${mDl} Mbps`;
+                    subValDownload.textContent = `Single: ${sDl} Mbps • Multi: ${mDl} Mbps`;
+                    await new Promise(r => setTimeout(r, 400));
+
+                    // 4. Multi Thread Upload
+                    const mUl = await runUploadPhase(4, signal, '[4/4] Multi ');
+                    DOM.valUpload.textContent = `${mUl} Mbps`;
+                    subValUpload.textContent = `Single: ${sUl} Mbps • Multi: ${mUl} Mbps`;
+
+                    DOM.speedStatus.textContent = 'Sequential Benchmark (Single + Multi) Complete';
+                }
+            } catch (err) {
+                if (signal.aborted) {
+                    DOM.speedStatus.textContent = 'Diagnostics stopped by user';
+                } else {
+                    DOM.speedStatus.textContent = 'Diagnostics interrupted: ' + err.message;
+                }
+            } finally {
+                resetTestButton();
             }
         });
 
-        // --- Init ---
-        setupPinInput();
+        // Initialize App
+        initTheme();
         checkAuth();
-        
     </script>
 </body>
 </html>

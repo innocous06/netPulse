@@ -8,7 +8,7 @@ const execAsync = promisify(exec);
 const resolve4Async = promisify(dns.resolve4);
 
 const isValidHost = (host) => {
-  return /^[a-zA-Z0-9.-]+$/.test(host);
+  return typeof host === 'string' && host.length > 0 && host.length <= 255 && !host.startsWith('-') && /^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?$/.test(host);
 };
 
 router.get('/ping/:host', async (req, res) => {
@@ -46,14 +46,13 @@ router.get('/traceroute/:host', async (req, res) => {
   
   try {
     const isWin = process.platform === 'win32';
-    const cmd = isWin ? `tracert -d -w 3000 -h 15 ${host}` : `traceroute -n -w 3 -m 15 ${host}`;
+    const cmd = isWin ? `tracert -d -w 800 -h 8 ${host}` : `traceroute -n -w 1 -m 8 -q 1 ${host}`;
     
-    // Set a timeout to prevent hanging commands
-    const { stdout } = await execAsync(cmd, { timeout: 45000 });
+    const { stdout } = await execAsync(cmd, { timeout: 15000 });
     res.json({ success: true, raw: stdout });
   } catch (error) {
-    // Return partial output if it timed out or hit another error
-    res.status(500).json({ success: false, error: 'Traceroute failed or timed out', raw: error.stdout || error.message });
+    const output = error.stdout || error.stderr || error.message;
+    res.json({ success: true, partial: true, raw: output });
   }
 });
 

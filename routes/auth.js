@@ -18,7 +18,7 @@ setInterval(() => {
   }
 }, RATE_LIMIT.windowMs);
 
-router.post('/', (req, res) => {
+const handleLogin = (req, res) => {
   const ip = getClientIp(req);
   const now = Date.now();
   const activePin = process.env.NETPULSE_PIN || PIN || '060606';
@@ -33,7 +33,10 @@ router.post('/', (req, res) => {
     return res.status(429).json({ success: false, message: 'Too many attempts. Rate limited for 15 mins.' });
   }
 
-  const { pin } = req.body;
+  const { pin } = req.body || {};
+  if (!pin || typeof pin !== 'string') {
+    return res.status(400).json({ success: false, message: 'Valid PIN string is required' });
+  }
   
   if (String(pin).trim() === String(activePin).trim()) {
     loginAttempts.delete(ip);
@@ -45,14 +48,21 @@ router.post('/', (req, res) => {
     
     const remaining = RATE_LIMIT.maxAttempts - attemptData.count;
     return res.status(401).json({ 
-      success: false,
+      success: false, 
       message: `Invalid PIN (${remaining} left)`, 
       attemptsRemaining: remaining 
     });
   }
-});
+};
+
+router.post('/', handleLogin);
+router.post('/login', handleLogin);
 
 router.get('/check', (req, res) => {
+  res.json({ authenticated: !!req.session?.authenticated });
+});
+
+router.get('/status', (req, res) => {
   res.json({ authenticated: !!req.session?.authenticated });
 });
 

@@ -66,31 +66,68 @@ app.use('/api/network', networkRoutes);
 app.use('/api/gameservers', gameServersRoutes);
 app.use('/api', identityRoutes);
 
+let cachedGameServers = null;
+let lastGameServersCheck = 0;
+let isProbingGameServers = false;
+
+async function getCachedGameServers() {
+  const now = Date.now();
+  if (cachedGameServers && (now - lastGameServersCheck < 6000)) {
+    return cachedGameServers;
+  }
+  if (isProbingGameServers && cachedGameServers) {
+    return cachedGameServers;
+  }
+  isProbingGameServers = true;
+  try {
+    const promises = config.GAME_SERVERS.map(async (srv) => {
+      const result = await tcpPing(srv.host, srv.port, 1500);
+      return { ...srv, ...result };
+    });
+    cachedGameServers = await Promise.all(promises);
+    lastGameServersCheck = Date.now();
+  } catch (e) {
+    console.error('Game server probe error:', e);
+  } finally {
+    isProbingGameServers = false;
+  }
+  return cachedGameServers || [];
+}
+
+function safeSend(ws, payload) {
+  if (ws && ws.readyState === 1) {
+    try {
+      ws.send(typeof payload === 'string' ? payload : JSON.stringify(payload));
+    } catch (e) {}
+  }
+}
+
 // WebSocket Server
 wss.on('connection', (ws, req) => {
-  // In a strict setup, we would parse the cookie string from req.headers.cookie
-  // to verify req.session.authenticated, but for simplicity here we assume standard connections.
-
-  let gameServersInterval;
+  let gameServersInterval = null;
 
   ws.on('message', async (message) => {
     try {
       const data = JSON.parse(message);
       
       if (data.type === 'ping') {
-        ws.send(JSON.stringify({ type: 'pong', ts: Date.now(), clientTs: data.clientTs }));
+        safeSend(ws, { type: 'pong', ts: Date.now(), clientTs: data.clientTs });
       } 
       else if (data.type === 'subscribe-gameservers') {
         if (gameServersInterval) clearInterval(gameServersInterval);
         
+        // Send immediate initial cache
+        const initial = await getCachedGameServers();
+        safeSend(ws, { type: 'gameserver-update', data: initial });
+
         gameServersInterval = setInterval(async () => {
-          const promises = config.GAME_SERVERS.map(async (srv) => {
-            const result = await tcpPing(srv.host, srv.port, 2000);
-            return { ...srv, ...result };
-          });
-          const results = await Promise.all(promises);
-          ws.send(JSON.stringify({ type: 'gameserver-update', data: results }));
-        }, 2000);
+          if (ws.readyState !== 1) {
+            clearInterval(gameServersInterval);
+            return;
+          }
+          const results = await getCachedGameServers();
+          safeSend(ws, { type: 'gameserver-update', data: results });
+        }, 3000);
       }
       else if (data.type === 'unsubscribe-gameservers') {
         if (gameServersInterval) {
@@ -101,14 +138,18 @@ wss.on('connection', (ws, req) => {
       else if (data.type === 'ping-test') {
         const count = data.count || 20;
         for (let i = 0; i < count; i++) {
+          if (ws.readyState !== 1) break;
           await new Promise(r => setTimeout(r, 50)); 
-          // Basic placeholder representing sequential pings
-          ws.send(JSON.stringify({ type: 'ping-test-result', seq: i + 1, ts: Date.now() }));
+          safeSend(ws, { type: 'ping-test-result', seq: i + 1, ts: Date.now() });
         }
       }
     } catch (err) {
       console.error('WebSocket Error:', err);
     }
+  });
+
+  ws.on('error', () => {
+    if (gameServersInterval) clearInterval(gameServersInterval);
   });
 
   ws.on('close', () => {

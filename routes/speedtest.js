@@ -6,11 +6,17 @@ const router = express.Router();
 const DUMMY_BUFFER = crypto.randomBytes(4 * 1024 * 1024);
 
 router.get('/download', (req, res) => {
-  let sizeMB = parseInt(req.query.size) || 10;
+  let sizeMB = parseInt(req.query.size, 10);
+  if (isNaN(sizeMB)) sizeMB = 10;
   if (sizeMB > 100) sizeMB = 100;
   if (sizeMB < 1) sizeMB = 1;
 
   const sizeBytes = sizeMB * 1024 * 1024;
+  let isClosed = false;
+
+  req.on('close', () => {
+    isClosed = true;
+  });
   
   res.set({
     'Content-Type': 'application/octet-stream',
@@ -22,7 +28,8 @@ router.get('/download', (req, res) => {
   let sentBytes = 0;
 
   const sendChunk = () => {
-    while (sentBytes < sizeBytes) {
+    if (isClosed || res.writableEnded) return;
+    while (sentBytes < sizeBytes && !isClosed) {
       const toSend = Math.min(DUMMY_BUFFER.length, sizeBytes - sentBytes);
       const chunk = DUMMY_BUFFER.subarray(0, toSend);
       sentBytes += toSend;
@@ -32,27 +39,43 @@ router.get('/download', (req, res) => {
         return;
       }
     }
-    res.end();
+    if (!isClosed && !res.writableEnded) res.end();
   };
   
   sendChunk();
 });
 
-router.post('/upload', express.raw({ type: '*/*', limit: '100mb' }), (req, res) => {
-  const startTime = req.headers['x-start-time'] ? parseInt(req.headers['x-start-time'], 10) : Date.now();
-  const endTime = Date.now();
-  
-  const bytes = req.body ? req.body.length : 0;
-  const durationMs = Math.max(1, endTime - startTime);
-  
-  const bits = bytes * 8;
-  const speedMbps = (bits / (durationMs / 1000)) / 1000000;
-  
-  res.json({ 
-    success: true,
-    bytes, 
-    durationMs, 
-    speedMbps: parseFloat(speedMbps.toFixed(2))
+router.post('/upload', (req, res) => {
+  const startTime = Date.now();
+  let bytes = 0;
+  let isAborted = false;
+
+  req.on('aborted', () => {
+    isAborted = true;
+  });
+
+  req.on('data', chunk => {
+    if (!isAborted) bytes += chunk.length;
+  });
+
+  req.on('end', () => {
+    if (isAborted || res.headersSent) return;
+    const durationMs = Math.max(1, Date.now() - startTime);
+    const bits = bytes * 8;
+    const speedMbps = (bits / (durationMs / 1000)) / 1000000;
+    
+    res.json({
+      success: true,
+      bytes,
+      durationMs,
+      speedMbps: parseFloat(speedMbps.toFixed(2))
+    });
+  });
+
+  req.on('error', (err) => {
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: err.message });
+    }
   });
 });
 

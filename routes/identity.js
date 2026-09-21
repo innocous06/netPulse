@@ -37,12 +37,13 @@ router.get('/ip-info', async (req, res) => {
     const geo = geoip.lookup(cleanIp);
 
     const clientIp = apiData?.query || cleanIp;
+    const isClientIpv6 = clientIp.includes(':');
 
     res.json({
       success: true,
       ip: clientIp,
-      ipv4: !isIpv6 ? clientIp : null,
-      ipv6: isIpv6 ? clientIp : null,
+      ipv4: !isClientIpv6 ? clientIp : null,
+      ipv6: isClientIpv6 ? clientIp : null,
       country: apiData?.country || geo?.country || 'Unknown',
       countryCode: apiData?.countryCode || geo?.country || '',
       city: apiData?.city || geo?.city || 'Unknown',
