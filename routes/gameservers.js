@@ -7,35 +7,47 @@ const tcpPing = (host, port, timeout = 2500) => {
   return new Promise((resolve) => {
     const start = performance.now();
     const socket = new net.Socket();
-    
-    socket.setTimeout(timeout);
-    
-    const cleanup = () => {
-      socket.destroy();
+    let resolved = false;
+
+    const finalize = (payload) => {
+      if (resolved) return;
+      resolved = true;
+      try {
+        socket.removeAllListeners();
+        socket.destroy();
+      } catch (e) {}
+      resolve(payload);
     };
+
+    socket.setTimeout(timeout);
 
     socket.on('connect', () => {
       const latency = performance.now() - start;
-      cleanup();
-      resolve({ alive: true, latency: Math.max(1, parseFloat(latency.toFixed(1))) });
+      finalize({ alive: true, latency: Math.max(1, parseFloat(latency.toFixed(1))) });
     });
-    
+
     socket.on('timeout', () => {
-      cleanup();
-      resolve({ alive: false, latency: null, error: 'timeout' });
+      finalize({ alive: false, latency: null, error: 'timeout' });
     });
-    
+
     socket.on('error', (err) => {
       const latency = performance.now() - start;
-      cleanup();
       // ECONNREFUSED means the host actively responded with a TCP RST! Host is alive.
       if (err.code === 'ECONNREFUSED') {
-        return resolve({ alive: true, latency: Math.max(1, parseFloat(latency.toFixed(1))) });
+        return finalize({ alive: true, latency: Math.max(1, parseFloat(latency.toFixed(1))) });
       }
-      resolve({ alive: false, latency: null, error: err.code || err.message });
+      finalize({ alive: false, latency: null, error: err.code || err.message });
     });
-    
-    socket.connect(port, host);
+
+    socket.on('close', () => {
+      finalize({ alive: false, latency: null, error: 'closed' });
+    });
+
+    try {
+      socket.connect(port, host);
+    } catch (err) {
+      finalize({ alive: false, latency: null, error: err.message });
+    }
   });
 };
 

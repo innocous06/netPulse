@@ -46,7 +46,9 @@ router.get('/traceroute/:host', async (req, res) => {
   
   try {
     const isWin = process.platform === 'win32';
-    const cmd = isWin ? `tracert -d -w 800 -h 8 ${host}` : `traceroute -n -w 1 -m 8 -q 1 ${host}`;
+    const cmd = isWin 
+      ? `tracert -d -w 800 -h 10 ${host}` 
+      : `traceroute -I -n -w 1 -m 10 -q 1 ${host} 2>/dev/null || traceroute -n -w 1 -m 10 -q 1 ${host} 2>/dev/null || tracepath -n -m 10 ${host}`;
     
     const { stdout } = await execAsync(cmd, { timeout: 15000 });
     res.json({ success: true, raw: stdout });

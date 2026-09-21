@@ -1291,24 +1291,27 @@
             const workers = [];
             for (let i = 0; i < concurrency; i++) workers.push(runDlStream(i));
 
-            let lastBytes = 0;
-            let lastTime = startDl;
+            let history = [{ time: startDl, bytes: 0 }];
 
             const dlSampler = setInterval(() => {
                 if (signal.aborted) return;
                 const now = performance.now();
                 const totalBytes = streamBytes.reduce((a, b) => a + b, 0);
-                const diffBytes = totalBytes - lastBytes;
-                const diffTime = (now - lastTime) / 1000;
+                history.push({ time: now, bytes: totalBytes });
+                while (history.length > 2 && (now - history[0].time) > 1500) {
+                    history.shift();
+                }
 
-                if (diffTime > 0) {
-                    const mbps = (diffBytes * 8) / diffTime / 1000000;
-                    if (now - startDl > 600) speedSamples.push(mbps);
+                const oldest = history[0];
+                const windowTimeSec = (now - oldest.time) / 1000;
+                const windowBytes = totalBytes - oldest.bytes;
+
+                if (windowTimeSec > 0.1) {
+                    const mbps = (windowBytes * 8) / windowTimeSec / 1000000;
+                    if (now - startDl > 800) speedSamples.push(mbps);
                     DOM.liveSpeed.textContent = mbps.toFixed(1);
                     DOM.speedBar.style.width = Math.min((mbps / 500) * 100, 100) + '%';
                 }
-                lastBytes = totalBytes;
-                lastTime = now;
             }, 100);
 
             const DURATION = 5000;
@@ -1324,9 +1327,10 @@
             if (signal.aborted) throw new Error('Aborted');
 
             speedSamples.sort((a, b) => a - b);
+            const totalDownloaded = streamBytes.reduce((a, b) => a + b, 0);
             const finalDl = speedSamples.length > 0
                 ? speedSamples[Math.floor(speedSamples.length * 0.85)]
-                : (lastBytes * 8) / ((performance.now() - startDl) / 1000) / 1000000;
+                : (totalDownloaded * 8) / ((performance.now() - startDl) / 1000) / 1000000;
 
             DOM.liveSpeed.textContent = finalDl.toFixed(1);
             return parseFloat(finalDl.toFixed(1));
@@ -1360,24 +1364,27 @@
             const ulWorkers = [];
             for (let i = 0; i < concurrency; i++) ulWorkers.push(runUlStream(i));
 
-            let ulLastBytes = 0;
-            let ulLastTime = startUl;
+            let ulHistory = [{ time: startUl, bytes: 0 }];
 
             const ulSampler = setInterval(() => {
                 if (signal.aborted) return;
                 const now = performance.now();
                 const totalBytes = ulBytes.reduce((a, b) => a + b, 0);
-                const diffBytes = totalBytes - ulLastBytes;
-                const diffTime = (now - ulLastTime) / 1000;
+                ulHistory.push({ time: now, bytes: totalBytes });
+                while (ulHistory.length > 2 && (now - ulHistory[0].time) > 1500) {
+                    ulHistory.shift();
+                }
 
-                if (diffTime > 0) {
-                    const mbps = (diffBytes * 8) / diffTime / 1000000;
-                    if (now - startUl > 600) ulSamples.push(mbps);
+                const oldest = ulHistory[0];
+                const windowTimeSec = (now - oldest.time) / 1000;
+                const windowBytes = totalBytes - oldest.bytes;
+
+                if (windowTimeSec > 0.1) {
+                    const mbps = (windowBytes * 8) / windowTimeSec / 1000000;
+                    if (now - startUl > 800) ulSamples.push(mbps);
                     DOM.liveSpeed.textContent = mbps.toFixed(1);
                     DOM.speedBar.style.width = Math.min((mbps / 500) * 100, 100) + '%';
                 }
-                ulLastBytes = totalBytes;
-                ulLastTime = now;
             }, 100);
 
             const DURATION = 4500;
@@ -1393,9 +1400,10 @@
             if (signal.aborted) throw new Error('Aborted');
 
             ulSamples.sort((a, b) => a - b);
+            const totalUploaded = ulBytes.reduce((a, b) => a + b, 0);
             const finalUl = ulSamples.length > 0
                 ? ulSamples[Math.floor(ulSamples.length * 0.85)]
-                : (ulLastBytes * 8) / ((performance.now() - startUl) / 1000) / 1000000;
+                : (totalUploaded * 8) / ((performance.now() - startUl) / 1000) / 1000000;
 
             DOM.liveSpeed.textContent = finalUl.toFixed(1);
             return parseFloat(finalUl.toFixed(1));
